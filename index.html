@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Живая Геометрия 3.5: Интерактивная Планиметрия, Тригонометрия и Стереометрия</title>
+  <title>Живая Геометрия: Интерактивная Планиметрия, Тригонометрия и Стереометрия</title>
   <!-- KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.css" crossorigin="anonymous" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.js" crossorigin="anonymous" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';s.onload=window.triggerKaTeX;document.head.appendChild(s);"></script>
@@ -921,7 +921,7 @@
     <div class="brand">
       <div class="brand-icon">✨</div>
       <div class="brand-text">
-        <h1>Живая Геометрия 4.0</h1>
+        <h1>Живая Геометрия</h1>
         <p>Интерактивный курс для ПК и смартфонов: Планиметрия, Тригонометрия и 3D</p>
       </div>
     </div>
@@ -1119,10 +1119,68 @@
         showVertexUnfold: true
       },
       dido: {
-        morphProgress: 0.25, // 0 = Triangle (N=3), 0.25 = Square (N=4), 0.5 = Pentagon (N=5), 0.75 = Hexagon (N=6), 1.0 = Circle (N=inf)
+        morphProgress: 0.25,
         autoAnimate: true,
         animDir: 1,
-        seaShoreMode: false  // Half-circle against sea coast (S = L^2 / (2*pi) ≈ 1592!)
+        seaShoreMode: false
+      },
+      vectors2d: {
+        subMode: 'addition', // 'basics', 'addition', 'sub_scalar', 'dot_product', 'geom_apps'
+        addRule: 'both', // 'triangle', 'parallelogram', 'both', 'polygon'
+        shiftStep: 1.0,  // 0 to 1 animation slider for moving vector b to tip of a
+        scalarK: 1.5,    // -2.5 to 2.5
+        divRatioT: 0.5,  // 0 to 1 for point M on AB: OM = (1-t)OA + tOB
+        // Vector coordinates in grid units (1 unit = 30 px, origin at center of canvas)
+        vecA: { x: 150, y: -90, label: 'a', color: '#f43f5e' },  // (5, 3) in math coords
+        vecB: { x: 90, y: 120, label: 'b', color: '#38bdf8' },   // (3, -4) in math coords
+        baseA: { x: -180, y: 60, label: 'Начало A', color: '#fbbf24' }
+      },
+      vectors3d: {
+        subMode: 'box_3d',
+        ax: 1.2,
+        ay: 1.0,
+        az: 0.9,
+        angleBetweenDeg: 65
+      },
+      volSurf3d: {
+        shape: 'pyramid',
+        paramR: 3.0,
+        paramH: 4.0,
+        fillLevel: 0.65,
+        showBoundingCylinder: true,
+        highlightPart: 'all'
+      },
+      stereoTheory: {
+        subMode: 'axioms', // 'axioms', 'parallel', 'skew_lines', 'perp', 'ttp', 'ege_plot'
+        planeWay: '3points', // '3points', 'line_point', '2intersect', '2parallel', '2planes_line'
+        ttpAngleDeg: 90,   // Angle of line a in plane alpha relative to projection HM (90° = TTP holds!)
+        egeShape: 'pyramid' // 'pyramid', 'cube_diag'
+      },
+      stereoDistAng: {
+        subMode: 'point_plane',
+        shiftSkewT: 1.0,
+        inclineDeg: 40,
+        heightH: 1.25
+      },
+      dimBridge: {
+        family: 'hypercube', // 'hypercube' (1->2->4->8->16) or 'simplex' (1->2->3->4->5)
+        dimProgress: 3.0,    // 0.0 (0D) -> 1.0 (1D) -> 2.0 (2D) -> 3.0 (3D) -> 4.0 (4D)
+        autoAnimate: false,
+        animDir: 1,
+        wAngle: 0.45,
+        autoWRotate: true
+      },
+      questsExtra: {
+        // Quest 6: Heron's shortest path A -> M (on river) -> B
+        heronM_x: -90, // relative to cx, optimal is +32
+        showHeronMirror: false,
+        // Quest 7: Inscribed quadrilateral (drag D so B + D = 180 deg)
+        quadD: { x: 560, y: 185, label: 'D (тяни к окружности!)', color: '#fbbf24' },
+        // Quest 9: Ant on a 3D cube (crossing point t on top-front edge, optimal t = 0.5, unfold 0..1)
+        antEdgeT: 0.15,
+        antUnfold: 0.0,
+        // Quest 10: 3D Shadow catcher (tilt angle phi, target = 60 deg so cos(60) = 0.5)
+        shadowTiltDeg: 25
       },
 
       draggedPoint: null,
@@ -1286,8 +1344,9 @@
 
     function setQuest(qId) {
       state.questId = qId;
-      document.getElementById('view-3d-tools').style.display = (qId === 'quest_cube_hex') ? 'flex' : 'none';
-      if (qId === 'quest_orthocenter') {
+      const is3DQuest = (qId === 'quest_cube_hex' || qId === 'quest_spider_cube' || qId === 'quest_shadow_3d' || qId === 'quest_dimensions');
+      document.getElementById('view-3d-tools').style.display = is3DQuest ? 'flex' : 'none';
+      if (qId === 'quest_orthocenter' || qId === 'quest_euler_collapse') {
         presetTriangle('acute');
       } else if (qId === 'quest_thales') {
         state.circleChord.angleA = 2.45;
@@ -1297,6 +1356,11 @@
         state.currentShape3d = 'cube';
       } else if (qId === 'quest_isoperimetric') {
         state.dido.autoAnimate = true;
+      } else if (qId === 'quest_perp_vectors') {
+        state.vectors2d.vecA = { x: 120, y: -90, label: 'a', color: '#f43f5e' };
+        state.vectors2d.vecB = { x: 120, y: 60, label: 'b', color: '#38bdf8' };
+      } else if (qId === 'quest_inscribed_quad') {
+        state.questsExtra.quadD = { x: canvas.width / 2 + 185, y: canvas.height / 2 - 125, label: 'D (тяни!)', color: '#fbbf24' };
       }
       renderSidebar();
     }
@@ -1310,7 +1374,7 @@
       if (state.domain === '2d') {
         sb.innerHTML = `
           <div class="sidebar-section">
-            <div class="section-title">10 Разделов Планиметрии и Тригонометрии</div>
+            <div class="section-title">11 Разделов Планиметрии, Тригонометрии и Векторов</div>
             <div class="mode-pills">
               <div class="mode-pill ${state.mode2d === 'angles_parallel' ? 'active' : ''}" onclick="set2DMode('angles_parallel')">
                 <div class="pill-icon">📏</div>
@@ -1391,6 +1455,14 @@
                   <div style="font-size:0.68rem; color:var(--text-muted)">Смысл на круге и правило руки</div>
                 </div>
               </div>
+
+              <div class="mode-pill full-width ${state.mode2d === 'vectors_2d' ? 'active' : ''}" onclick="set2DMode('vectors_2d')" style="border-color: rgba(52, 211, 153, 0.4);">
+                <div class="pill-icon">🏹</div>
+                <div>
+                  <strong>11. Векторы и действия с ними (от А до Я)</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Координаты, сложение (△ и ▱), вычитание, скалярное произведение и геометрия</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1401,13 +1473,44 @@
       } else if (state.domain === '3d') {
         sb.innerHTML = `
           <div class="sidebar-section">
-            <div class="section-title">Режимы Стереометрии (3D)</div>
+            <div class="section-title">Полный Курс Стереометрии (3D и Мост Мерностей)</div>
             <div class="mode-pills">
+              <div class="mode-pill full-width ${state.mode3d === 'dimensions_bridge_3d' ? 'active' : ''}" onclick="set3DMode('dimensions_bridge_3d')" style="border-color: rgba(192, 132, 252, 0.65); background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(56, 189, 248, 0.16));">
+                <div class="pill-icon">🌌</div>
+                <div>
+                  <strong>0. Мост Мерностей: 0D ➔ 1D ➔ 2D ➔ 3D ➔ 4D</strong>
+                  <div style="font-size:0.71rem; color:var(--text-muted)">Точка (0D) ➔ Линия (1D) ➔ Плоскость (2D) ➔ Объём (3D: Тетраэдр vs Куб) ➔ Гиперпространство (4D)</div>
+                </div>
+              </div>
+              <div class="mode-pill full-width ${state.mode3d === 'axioms_perp_3d' ? 'active' : ''}" onclick="set3DMode('axioms_perp_3d')" style="border-color: rgba(251, 191, 36, 0.45);">
+                <div class="pill-icon">📐</div>
+                <div>
+                  <strong>1–3. Аксиомы, Параллельность, Перпендикулярность и ТТП</strong>
+                  <div style="font-size:0.71rem; color:var(--text-muted)">Аксиомы I–III, способы задать плоскость, скрещивающиеся прямые, ТТП и сюжет ЕГЭ</div>
+                </div>
+              </div>
+
+              <div class="mode-pill full-width ${state.mode3d === 'distances_angles_3d' ? 'active' : ''}" onclick="set3DMode('distances_angles_3d')" style="border-color: rgba(56, 189, 248, 0.45);">
+                <div class="pill-icon">📏</div>
+                <div>
+                  <strong>4–5. Расстояния, Углы в 3D и Площадь Проекции</strong>
+                  <div style="font-size:0.71rem; color:var(--text-muted)">Расстояния (точка-плоскость, скрещивающиеся), углы в 3D и Sпр = S·cos φ</div>
+                </div>
+              </div>
+
               <div class="mode-pill full-width ${state.mode3d === 'platonic_solids' ? 'active' : ''}" onclick="set3DMode('platonic_solids')">
                 <div class="pill-icon">🏛️</div>
                 <div>
                   <strong>Платоновы Тела: Откуда они и что значат</strong>
                   <div style="font-size:0.72rem; color:var(--text-muted)">Почему их ровно 5 во Вселенной, 5 стихий Платона, кристаллы и двойственность</div>
+                </div>
+              </div>
+
+              <div class="mode-pill full-width ${state.mode3d === 'volumes_surfaces_3d' ? 'active' : ''}" onclick="set3DMode('volumes_surfaces_3d')" style="border-color: rgba(52, 211, 153, 0.45);">
+                <div class="pill-icon">📏</div>
+                <div>
+                  <strong>Объёмы (V) и Площади Поверхностей (Sбок, Sполн)</strong>
+                  <div style="font-size:0.72rem; color:var(--text-muted)">Призма, пирамида (апофема), цилиндр, конус (образующая), шар и закон 1 : 2 : 3 Архимеда</div>
                 </div>
               </div>
 
@@ -1451,6 +1554,14 @@
                 </div>
               </div>
 
+              <div class="mode-pill full-width ${state.mode3d === 'vectors_3d' ? 'active' : ''}" onclick="set3DMode('vectors_3d')">
+                <div class="pill-icon">🏹</div>
+                <div>
+                  <strong>Векторы в 3D: Координаты (x, y, z) и Векторное произведение</strong>
+                  <div style="font-size:0.72rem; color:var(--text-muted)">3D-параллелепипед вектора, пространственный Пифагор и правило правой руки a × b</div>
+                </div>
+              </div>
+
               <div class="mode-pill full-width ${state.mode3d === 'euler_poly' ? 'active' : ''}" onclick="set3DMode('euler_poly')">
                 <div class="pill-icon">✨</div>
                 <div>
@@ -1482,37 +1593,93 @@
       } else {
         sb.innerHTML = `
           <div class="sidebar-section">
-            <div class="section-title">Интерактивные Задачи-Исследования</div>
+            <div class="section-title">11 Интерактивных Геометрических Квестов (0D ➔ 4D)</div>
             <div class="mode-pills">
-              <div class="mode-pill full-width ${state.questId === 'quest_orthocenter' ? 'active' : ''}" onclick="setQuest('quest_orthocenter')">
+              <div class="mode-pill ${state.questId === 'quest_orthocenter' ? 'active' : ''}" onclick="setQuest('quest_orthocenter')">
                 <div class="pill-icon">🎯</div>
                 <div>
-                  <strong>1. Изгони Ортоцентр наружу!</strong>
-                  <div style="font-size:0.72rem; color:var(--text-muted)">Когда точка пересечения высот покидает треугольник?</div>
+                  <strong>1. Ортоцентр-беглец</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Вытолкни H наружу</div>
                 </div>
               </div>
 
-              <div class="mode-pill full-width ${state.questId === 'quest_thales' ? 'active' : ''}" onclick="setQuest('quest_thales')">
+              <div class="mode-pill ${state.questId === 'quest_thales' ? 'active' : ''}" onclick="setQuest('quest_thales')">
                 <div class="pill-icon">🏹</div>
                 <div>
-                  <strong>2. Поймай прямой угол Фалеса (90°)</strong>
-                  <div style="font-size:0.72rem; color:var(--text-muted)">Найди положение хорды для прямого вписанного угла</div>
+                  <strong>2. Угол Фалеса (90°)</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Поймай 90° на круге</div>
                 </div>
               </div>
 
-              <div class="mode-pill full-width ${state.questId === 'quest_cube_hex' ? 'active' : ''}" onclick="setQuest('quest_cube_hex')">
+              <div class="mode-pill ${state.questId === 'quest_cube_hex' ? 'active' : ''}" onclick="setQuest('quest_cube_hex')">
                 <div class="pill-icon">🔷</div>
                 <div>
-                  <strong>3. Шестиугольное сечение куба</strong>
-                  <div style="font-size:0.72rem; color:var(--text-muted)">Разрежь куб плоскостью так, чтобы получить 6-угольник</div>
+                  <strong>3. 6-угольник в кубе</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Срез 3D-куба ножом</div>
                 </div>
               </div>
 
-              <div class="mode-pill full-width ${state.questId === 'quest_isoperimetric' ? 'active' : ''}" onclick="setQuest('quest_isoperimetric')">
+              <div class="mode-pill ${state.questId === 'quest_isoperimetric' ? 'active' : ''}" onclick="setQuest('quest_isoperimetric')">
                 <div class="pill-icon">👑</div>
                 <div>
-                  <strong>4. Задача царицы Дидоны (Периметр и Площадь)</strong>
-                  <div style="font-size:0.72rem; color:var(--text-muted)">Почему круг вмещает максимум площади при том же периметре?</div>
+                  <strong>4. Хитрость Дидоны</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Максимум площади</div>
+                </div>
+              </div>
+
+              <div class="mode-pill ${state.questId === 'quest_euler_collapse' ? 'active' : ''}" onclick="setQuest('quest_euler_collapse')">
+                <div class="pill-icon">💎</div>
+                <div>
+                  <strong>5. Слияние 4 центров</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Сожми прямую Эйлера</div>
+                </div>
+              </div>
+
+              <div class="mode-pill ${state.questId === 'quest_heron_bridge' ? 'active' : ''}" onclick="setQuest('quest_heron_bridge')">
+                <div class="pill-icon">🌉</div>
+                <div>
+                  <strong>6. Мост Герона (Луч)</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Кратчайший путь к реке</div>
+                </div>
+              </div>
+
+              <div class="mode-pill ${state.questId === 'quest_inscribed_quad' ? 'active' : ''}" onclick="setQuest('quest_inscribed_quad')">
+                <div class="pill-icon">🛡️</div>
+                <div>
+                  <strong>7. Впиши 4-угольник</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Закон ∠B + ∠D = 180°</div>
+                </div>
+              </div>
+
+              <div class="mode-pill ${state.questId === 'quest_perp_vectors' ? 'active' : ''}" onclick="setQuest('quest_perp_vectors')">
+                <div class="pill-icon">⚡</div>
+                <div>
+                  <strong>8. Векторный прицел</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Добейся a · b = 0 (90°)</div>
+                </div>
+              </div>
+
+              <div class="mode-pill ${state.questId === 'quest_spider_cube' ? 'active' : ''}" onclick="setQuest('quest_spider_cube')">
+                <div class="pill-icon">🐜</div>
+                <div>
+                  <strong>9. Муравей на 3D-кубе</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Кратчайший путь по граням</div>
+                </div>
+              </div>
+
+              <div class="mode-pill ${state.questId === 'quest_shadow_3d' ? 'active' : ''}" onclick="setQuest('quest_shadow_3d')">
+                <div class="pill-icon">☀️</div>
+                <div>
+                  <strong>10. Ловец 3D-теней</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Сожми тень ровно вдвое</div>
+                </div>
+              </div>
+
+              <div class="mode-pill full-width ${state.questId === 'quest_dimensions' ? 'active' : ''}" onclick="setQuest('quest_dimensions')" style="border-color: rgba(192, 132, 252, 0.6);">
+                <div class="pill-icon">🌌</div>
+                <div>
+                  <strong>11. Архитектор Измерений: Построй Мост 0D ➔ 1D ➔ 2D ➔ 3D ➔ 4D</strong>
+                  <div style="font-size:0.68rem; color:var(--text-muted)">Сравни Симплекс (Тетраэдр: 4 точки, 4 грани) и Гиперкуб (Куб: 8 точек, 6 граней)</div>
                 </div>
               </div>
             </div>
@@ -2071,6 +2238,135 @@
           </div>
         `;
       }
+
+      if (m === 'vectors_2d') {
+        const v2 = state.vectors2d;
+        return `
+          <div class="control-group">
+            <div class="section-title">5 Лабораторий Векторов (тяни стрелки векторов на холсте!):</div>
+            <div class="btn-row">
+              <button class="action-btn ${v2.subMode === 'basics' ? 'active-toggle' : ''}" onclick="state.vectors2d.subMode='basics'; renderSidebar();">1. Понятие и Длина</button>
+              <button class="action-btn ${v2.subMode === 'addition' ? 'active-toggle' : ''}" onclick="state.vectors2d.subMode='addition'; renderSidebar();">2. Сложение (△ и ▱)</button>
+              <button class="action-btn ${v2.subMode === 'sub_scalar' ? 'active-toggle' : ''}" onclick="state.vectors2d.subMode='sub_scalar'; renderSidebar();">3. Разность и k·a</button>
+              <button class="action-btn ${v2.subMode === 'dot_product' ? 'active-toggle' : ''}" onclick="state.vectors2d.subMode='dot_product'; renderSidebar();">4. Скалярное (a · b)</button>
+              <button class="action-btn ${v2.subMode === 'geom_apps' ? 'active-toggle' : ''}" onclick="state.vectors2d.subMode='geom_apps'; renderSidebar();">5. Медиана и Задачи</button>
+            </div>
+          </div>
+
+          ${v2.subMode === 'basics' ? `
+            <div class="info-card">
+              <h3><span>🏹</span> 1. Как найти координаты и длину вектора?</h3>
+              <ul>
+                <li><strong>Правило координат вектора \\(\\overrightarrow{AB}\\):</strong> чтобы найти координаты вектора, нужно <strong>из координат КОНЦА \\(B(x_2; y_2)\\) вычесть координаты НАЧАЛА \\(A(x_1; y_1)\\)</strong>:</li>
+              </ul>
+              <div class="formula-box">
+                $$\\overrightarrow{AB} = \\lbrace x_2 - x_1;\\; y_2 - y_1 \\rbrace = \\lbrace a_x;\\; a_y \\rbrace = a_x\\vec{i} + a_y\\vec{j}$$
+              </div>
+              <ul>
+                <li><strong>Правило длины (модуля) вектора \\(|\\overrightarrow{AB}|\\):</strong> по теореме Пифагора длина вектора равна квадратному корню из суммы квадратов его координат:</li>
+              </ul>
+              <div class="formula-box">
+                $$|\\overrightarrow{AB}| = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2} = \\sqrt{a_x^2 + a_y^2}$$
+              </div>
+              <ul>
+                <li><strong>Равные векторы (\\(\\vec{a} = \\vec{a}'\\))</strong> сонаправлены (\\(\\uparrow\\uparrow\\)) и имеют равные длины и одинаковые координаты \\(\\lbrace a_x;\\; a_y \\rbrace\\), где бы на плоскости они ни находились!</li>
+                <li><strong>Противоположный вектор (\\(-\\vec{a}\\))</strong> имеет координаты \\(\\lbrace -a_x;\\; -a_y \\rbrace\\) и направлен строго назад (\\(\\uparrow\\downarrow\\)).</li>
+              </ul>
+              <p class="hint">Тяни точку начала A и точку конца B на холсте — смотри живой расчёт координат и корня!</p>
+            </div>
+          ` : v2.subMode === 'addition' ? `
+            <div class="info-card">
+              <h3><span>➕</span> 2. Сложение векторов: Треугольник и Параллелограмм</h3>
+              <ul>
+                <li><strong>Правило треугольника («паровозик»):</strong> из конца первого вектора \\(\\vec{a}\\) откладываем второй вектор \\(\\vec{b}\\). Сумма \\(\\vec{a} + \\vec{b}\\) соединяет <em>начало первого с концом второго</em>: \\(\\overrightarrow{OA} + \\overrightarrow{AC} = \\overrightarrow{OC}\\)!</li>
+                <li><strong>Правило параллелограмма («из одной точки»):</strong> если \\(\\vec{a}\\) и \\(\\vec{b}\\) выходят из общей точки \\(O\\), то сумма \\(\\vec{a} + \\vec{b}\\) — это <strong>диагональ параллелограмма</strong>, выходящая из той же точки \\(O\\)!</li>
+              </ul>
+              <div class="formula-box">
+                $$\\vec{a} + \\vec{b} = \{a_x + b_x;\\; a_y + b_y\}$$
+                $$|\\vec{a} + \\vec{b}| \\le |\\vec{a}| + |\\vec{b}| \\quad\\text{(неравенство треугольника)}$$
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="btn-row">
+                <button class="action-btn ${v2.addRule === 'triangle' ? 'active-toggle' : ''}" onclick="state.vectors2d.addRule='triangle'; renderSidebar();">🔺 Правило треугольника</button>
+                <button class="action-btn ${v2.addRule === 'parallelogram' ? 'active-toggle' : ''}" onclick="state.vectors2d.addRule='parallelogram'; renderSidebar();">▱ Правило параллелограмма</button>
+                <button class="action-btn ${v2.addRule === 'both' ? 'active-toggle' : ''}" onclick="state.vectors2d.addRule='both'; renderSidebar();">✨ Оба сразу (почему это одно и то же!)</button>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-label">
+                <span>🎬 Перенести вектор \\(\\vec{b}\\) в конец \\(\\vec{a}\\):</span>
+                <span class="val" id="vec-shift-val">${Math.round(v2.shiftStep * 100)}%</span>
+              </div>
+              <input type="range" min="0" max="1" step="0.01" value="${v2.shiftStep}" oninput="state.vectors2d.shiftStep=+this.value; document.getElementById('vec-shift-val').innerText=Math.round(this.value*100)+'%';">
+            </div>
+          ` : v2.subMode === 'sub_scalar' ? `
+            <div class="info-card">
+              <h3><span>➖</span> 3. Вычитание \\(\\vec{a} - \\vec{b}\\) и Умножение на число \\(k\\vec{a}\\)</h3>
+              <ul>
+                <li><strong>Вычитание векторов (\\(\\vec{a} - \\vec{b}\\)):</strong> если \\(\\vec{a}\\) и \\(\\vec{b}\\) выходят из одной точки \\(O\\), то разность \\(\\vec{a} - \\vec{b}\\) соединяет их концы и <strong>смотрит стрелкой К ТОМУ, ИЗ КОГО ВЫЧИТАЕМ (к \\(\\vec{a}\\))</strong>!</li>
+                <li>Второй способ: прибавить противоположный вектор \\(\\vec{a} - \\vec{b} = \\vec{a} + (-\\vec{b})\\).</li>
+                <li><strong>Умножение на число \\(k\\vec{a}\\):</strong> при \\(k > 0\\) вектор растягивается в \\(k\\) раз в ту же сторону (\\(\\uparrow\\uparrow\\)), а при \\(k < 0\\) разворачивается в обратную сторону (\\(\\uparrow\\downarrow\\))! Векторы \\(\\vec{a}\\) и \\(k\\vec{a}\\) <strong>коллинеарны</strong>.</li>
+              </ul>
+              <div class="formula-box">
+                $$\\vec{a} - \\vec{b} = \{a_x - b_x;\\; a_y - b_y\}, \\qquad k\\vec{a} = \{k a_x;\\; k a_y\}$$
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-label">
+                <span>Множитель \\(k\\) для вектора \\(k\\vec{a}\\):</span>
+                <span class="val" id="vec-k-val">k = ${v2.scalarK.toFixed(1)}</span>
+              </div>
+              <input type="range" min="-2.0" max="2.2" step="0.1" value="${v2.scalarK}" oninput="state.vectors2d.scalarK=+this.value; document.getElementById('vec-k-val').innerText='k = '+ (+this.value).toFixed(1);">
+              <div class="btn-row">
+                <button class="action-btn" onclick="state.vectors2d.scalarK=-1; renderSidebar();">k = −1 (противоположный −a)</button>
+                <button class="action-btn" onclick="state.vectors2d.scalarK=2; renderSidebar();">k = 2 (удвоенный 2a)</button>
+              </div>
+            </div>
+          ` : v2.subMode === 'dot_product' ? `
+            <div class="info-card">
+              <h3><span>⚡</span> 4. Скалярное произведение \\(\\vec{a} \\cdot \\vec{b}\\) и угол \\(\\varphi\\)</h3>
+              <p>Скалярное произведение двух векторов — это <strong>ЧИСЛО (скаляр)</strong>, равное произведению их длин на косинус угла между ними:</p>
+              <div class="formula-box">
+                $$\\vec{a} \\cdot \\vec{b} = |\\vec{a}| \\cdot |\\vec{b}| \\cdot \\cos\\varphi = a_x b_x + a_y b_y$$
+                $$\\cos\\varphi = \\frac{a_x b_x + a_y b_y}{\\sqrt{a_x^2 + a_y^2}\\cdot\\sqrt{b_x^2 + b_y^2}}$$
+              </div>
+              <ul>
+                <li><strong style="color:#34d399">Если \\(\\vec{a} \\cdot \\vec{b} > 0\\)</strong> \\(\\implies \\cos\\varphi > 0 \\implies\\) угол \\(\\varphi < 90^\\circ\\) (<strong>острый</strong>).</li>
+                <li><strong style="color:#fbbf24">Если \\(\\vec{a} \\cdot \\vec{b} = 0\\)</strong> \\(\\implies \\cos\\varphi = 0 \\implies\\) угол \\(\\varphi = 90^\\circ\\) (<strong>векторы ПЕРПЕНДИКУЛЯРНЫ \\(\\vec{a} \\perp \\vec{b}\\)!</strong>).</li>
+                <li><strong style="color:#f43f5e">Если \\(\\vec{a} \\cdot \\vec{b} < 0\\)</strong> \\(\\implies \\cos\\varphi < 0 \\implies\\) угол \\(\\varphi > 90^\\circ\\) (<strong>тупой</strong>).</li>
+              </ul>
+            </div>
+            <div class="btn-row">
+              <button class="action-btn" onclick="state.vectors2d.vecA={x:150,y:-90,label:'a',color:'#f43f5e'}; state.vectors2d.vecB={x:90,y:150,label:'b',color:'#38bdf8'};">📐 Сделать перпендикулярными (a · b = 0, 90°)</button>
+            </div>
+          ` : `
+            <div class="info-card">
+              <h3><span>📐</span> 5. Векторы в задачах геометрии</h3>
+              <ul>
+                <li><strong>Формула медианы и середины отрезка \\(M\\):</strong> так как диагонали параллелограмма делятся пополам, вектор в середину стороны равен полусумме боковых векторов:</li>
+              </ul>
+              <div class="formula-box">
+                $$\\overrightarrow{OM} = \\frac{1}{2}\\left(\\overrightarrow{OA} + \\overrightarrow{OB}\\right), \\qquad M\\left(\\frac{x_A+x_B}{2};\\; \\frac{y_A+y_B}{2}\\right)$$
+                $$\\text{Деление отрезка } AB \\text{ в отношении } t: \\quad \\overrightarrow{OP} = (1-t)\\overrightarrow{OA} + t\\overrightarrow{OB}$$
+              </div>
+              <ul>
+                <li><strong>Центроид (пересечение медиан \\(G\\)):</strong> \\(\\overrightarrow{OG} = \\frac{1}{3}(\\overrightarrow{OA} + \\overrightarrow{OB} + \\overrightarrow{OC})\\), а сумма векторов из центроида к вершинам равна нулю: \\(\\overrightarrow{GA} + \\overrightarrow{GB} + \\overrightarrow{GC} = \\vec{0}\\)!</li>
+              </ul>
+            </div>
+            <div class="control-group">
+              <div class="control-label">
+                <span>Точка \\(P\\) на отрезке \\(AB\\) (доля \\(t\\)):</span>
+                <span class="val" id="vec-div-val">t = ${v2.divRatioT.toFixed(2)} ${Math.abs(v2.divRatioT - 0.5) < 0.03 ? '(Середина — медиана!)' : ''}</span>
+              </div>
+              <input type="range" min="0" max="1" step="0.05" value="${v2.divRatioT}" oninput="state.vectors2d.divRatioT=+this.value; document.getElementById('vec-div-val').innerText='t = '+ (+this.value).toFixed(2) + (Math.abs(this.value-0.5)<0.03 ? ' (Середина — медиана!)' : '');">
+            </div>
+          `}
+        `;
+      }
       return '';
     }
 
@@ -2131,8 +2427,465 @@
     // ==========================================
     // 3D & QUESTS SIDEBAR CONTROLS
     // ==========================================
+    function getDimensionsBridgeControlsHTML(isQuest) {
+      const db = state.dimBridge;
+      const p = db.dimProgress;
+      const stageIdx = Math.min(4, Math.round(p));
+      const hyperStages = [
+        { d: '0D — Точка', v: 1, e: 0, f: 0, c3: 0, bound: 'Нет границ (сама себе начало)', rule: 'В 0D нет ни длины, ни ширины, ни высоты — только положение.' },
+        { d: '1D — Отрезок (Линия)', v: 2, e: 1, f: 0, c3: 0, bound: 'Ограничена 2 точками (0D)', rule: 'Сдвигаем точку (0D) вдоль 1-й оси X ➔ след заметает отрезок (1D), а концами служат 2 точки!' },
+        { d: '2D — Квадрат (Плоскость)', v: 4, e: 4, f: 1, c3: 0, bound: 'Ограничена 4 линиями (1D) и 4 точками (0D)', rule: 'Сдвигаем отрезок (1D) перпендикулярно вдоль 2-й оси Y ➔ 2×2 = 4 точки и 4 линии-стороны!' },
+        { d: '3D — Куб / Гексаэдр (Объём)', v: 8, e: 12, f: 6, c3: 1, bound: 'Ограничен 6 ПЛОСКОСТЯМИ (2D), 12 линиями (1D) и 8 точками (0D)!', rule: 'Сдвигаем квадрат (2D) вдоль 3-й оси Z ➔ точек становится 4×2 = 8, но плоскостей-граней у куба НЕ 4, а 6 (пол, потолок и 4 стены), а линий-рёбер — 12!' },
+        { d: '4D — Тессеракт (Гиперкуб)', v: 16, e: 32, f: 24, c3: 8, bound: 'Ограничен 8 КУБАМИ (3D), 24 плоскостями (2D), 32 линиями (1D) и 16 точками (0D)!', rule: 'Сдвигаем 3D-куб вдоль 4-й оси W ➔ 8×2 = 16 точек, 24 плоских квадрата и 8 трехмерных кубов-границ!' }
+      ];
+      const simplexStages = [
+        { d: '0D — Точка', v: 1, e: 0, f: 0, c3: 0, bound: 'Нет границ', rule: 'Нулевая мерность: 1 вершина.' },
+        { d: '1D — Отрезок (1D-симплекс)', v: 2, e: 1, f: 0, c3: 0, bound: 'Ограничен 2 точками (0D)', rule: 'Ставим 1 новую точку вне старой и соединяем: 2 точки, 1 линия.' },
+        { d: '2D — Треугольник (2D-симплекс)', v: 3, e: 3, f: 1, c3: 0, bound: 'Ограничен 3 линиями (1D) и 3 точками (0D)', rule: 'Минимальная плоская фигура! Ставим 1 точку вне прямой и соединяем с 2 концами отрезка: 3 точки, 3 линии.' },
+        { d: '3D — Тетраэдр (3D-симплекс)', v: 4, e: 6, f: 4, c3: 1, bound: 'Ограничен 4 ПЛОСКОСТЯМИ (2D), 6 линиями (1D) и 4 точками (0D)!', rule: 'Минимальная объёмная фигура! Ставим 1 точку в 3D над треугольником: вот она ограничена ровно 4 плоскостями, но точек у неё 4 (а не 8), и линий 6!' },
+        { d: '4D — Пятиячейник (4D-симплекс)', v: 5, e: 10, f: 10, c3: 5, bound: 'Ограничен 5 ТЕТРАЭДРАМИ (3D), 10 плоскостями (2D), 10 линиями (1D) и 5 точками (0D)!', rule: 'Ставим 5-ю точку в 4-м измерении и соединяем со всеми 4 вершинами тетраэдра (числа из треугольника Паскаля: 1–5–10–10–5–1)!' }
+      ];
+      const curList = db.family === 'hypercube' ? hyperStages : simplexStages;
+      const cur = curList[stageIdx];
+
+      return `
+        <div class="control-group">
+          <div class="section-title">Два главных семейства фигур (выбери путь построения):</div>
+          <div class="btn-row">
+            <button class="action-btn ${db.family === 'hypercube' ? 'active-toggle' : ''}" onclick="state.dimBridge.family='hypercube'; renderSidebar();">
+              🧊 Семейство Куба (Удвоение: 2ⁿ точек)
+            </button>
+            <button class="action-btn ${db.family === 'simplex' ? 'active-toggle' : ''}" onclick="state.dimBridge.family='simplex'; renderSidebar();">
+              🔺 Семейство Симплекса (Минимум: n+1 точек)
+            </button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>🌉 Мост Мерности (плавный переход 0D ➔ 4D):</span>
+            <span class="val" id="dim-prog-val">${p.toFixed(2)} D</span>
+          </div>
+          <input type="range" id="dim-bridge-slider" min="0" max="4" step="0.02" value="${p}" oninput="state.dimBridge.autoAnimate=false; state.dimBridge.dimProgress=+this.value; document.getElementById('dim-prog-val').innerText=(+this.value).toFixed(2)+' D';">
+          <div class="btn-row">
+            <button class="action-btn ${Math.abs(p - 0) < 0.1 ? 'active-toggle' : ''}" onclick="setDimBridgeStep(0)">0D Точка</button>
+            <button class="action-btn ${Math.abs(p - 1) < 0.1 ? 'active-toggle' : ''}" onclick="setDimBridgeStep(1)">1D Линия</button>
+            <button class="action-btn ${Math.abs(p - 2) < 0.1 ? 'active-toggle' : ''}" onclick="setDimBridgeStep(2)">2D Плоск.</button>
+            <button class="action-btn ${Math.abs(p - 3) < 0.1 ? 'active-toggle' : ''}" onclick="setDimBridgeStep(3)">3D Объём</button>
+            <button class="action-btn ${Math.abs(p - 4) < 0.1 ? 'active-toggle' : ''}" style="border-color:#c084fc; color:#e9d5ff;" onclick="setDimBridgeStep(4)">4D Гипер</button>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn ${db.autoAnimate ? 'active-toggle' : ''}" onclick="state.dimBridge.autoAnimate=!state.dimBridge.autoAnimate; renderSidebar();">
+              ${db.autoAnimate ? '⏸ Остановить анимацию 0D↔4D' : '▶ Авто-путешествие по мерностям (0D ➔ 4D)'}
+            </button>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3><span>🌌</span> ${cur.d}</h3>
+          <p><strong>Чем ограничена:</strong> <span style="color:#fde68a">${cur.bound}</span></p>
+          <p>${cur.rule}</p>
+          <div class="formula-box">
+            $$0\\text{D (точек): } ${cur.v}, \\quad 1\\text{D (линий): } ${cur.e}, \\quad 2\\text{D (плоскостей): } ${cur.f}${cur.c3 > 0 ? `, \\quad 3\\text{D (тел): } ${cur.c3}` : ''}$$
+          </div>
+        </div>
+
+        <div class="info-card" style="border-color: rgba(251, 191, 36, 0.5);">
+          <h3><span>💡</span> Важное уточнение: где смешались Тетраэдр и Куб?</h3>
+          <p>Ты заметил ключевой принцип: <strong>объект мерности $n$ всегда ограничен оболочкой из объектов мерности $(n-1)$</strong>! Но в 3D важно не смешать две разные фигуры:</p>
+          <ul>
+            <li><strong>Если в 3D фигура ограничена 4 плоскостями (2D)</strong> — это <strong>Тетраэдр</strong> (треугольная пирамида, продолжение <em>треугольника</em> из 3 точек). У него <strong>4 плоскости (2D), 6 линий (1D) и 4 точки (0D)</strong>!</li>
+            <li><strong>Если в 3D у фигуры 8 точек (0D)</strong> — это <strong>Куб</strong> (продолжение <em>квадрата</em> из 4 точек). Чтобы замкнуть 8 точек в объёме, нужно <strong>6 плоскостей-квадратов (2D)</strong> (пол, потолок и 4 стены) и <strong>12 линий-рёбер (1D)</strong>!</li>
+          </ul>
+          <table class="trig-table" style="margin-top:8px;">
+            <thead>
+              <tr>
+                <th>Мерность</th>
+                <th>Симплекс (мин.)</th>
+                <th>0D / 1D / 2D / 3D</th>
+                <th>Гиперкуб (сдвиг)</th>
+                <th>0D / 1D / 2D / 3D</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>0D</strong></td>
+                <td>Точка</td>
+                <td class="sqrt-cell">1 / 0 / 0 / 0</td>
+                <td>Точка</td>
+                <td class="sqrt-cell">1 / 0 / 0 / 0</td>
+              </tr>
+              <tr>
+                <td><strong>1D</strong></td>
+                <td>Отрезок</td>
+                <td class="sqrt-cell">2 / 1 / 0 / 0</td>
+                <td>Отрезок</td>
+                <td class="sqrt-cell">2 / 1 / 0 / 0</td>
+              </tr>
+              <tr>
+                <td><strong>2D</strong></td>
+                <td>Треугольник</td>
+                <td class="sqrt-cell">3 / 3 / 1 / 0</td>
+                <td>Квадрат</td>
+                <td class="sqrt-cell">4 / 4 / 1 / 0</td>
+              </tr>
+              <tr>
+                <td><strong>3D</strong></td>
+                <td><strong style="color:#34d399">Тетраэдр</strong></td>
+                <td class="sqrt-cell" style="color:#6ee7b7">4т / 6л / 4пл / 1</td>
+                <td><strong style="color:#38bdf8">Куб</strong></td>
+                <td class="sqrt-cell" style="color:#7dd3fc">8т / 12л / 6пл / 1</td>
+              </tr>
+              <tr>
+                <td><strong>4D</strong></td>
+                <td>5-ячейник</td>
+                <td class="sqrt-cell">5 / 10 / 10 / 5</td>
+                <td>Тессеракт</td>
+                <td class="sqrt-cell">16 / 32 / 24 / 8</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        ${isQuest ? `
+          <div class="quest-card">
+            <div class="quest-header"><span>🏆</span> Квест: Пройди по мосту до 4-го измерения (4D)!</div>
+            <div class="quest-status" id="quest-dim-status">Двигай ползунок мерности от 0D до 4D и сравни оба семейства...</div>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function setDimBridgeStep(val) {
+      state.dimBridge.autoAnimate = false;
+      state.dimBridge.dimProgress = val;
+      renderSidebar();
+    }
+
     function get3DControlsHTML() {
-      if (state.mode3d === 'platonic_solids') {
+      if (state.mode3d === 'dimensions_bridge_3d') {
+        return getDimensionsBridgeControlsHTML(false);
+      } else if (state.mode3d === 'axioms_perp_3d') {
+        const st = state.stereoTheory;
+        return `
+          <div class="control-group">
+            <div class="section-title">Главы 1–3: Выбери тему (крути 3D-сцену мышкой или пальцем!):</div>
+            <div class="btn-row">
+              <button class="action-btn ${st.subMode === 'axioms' ? 'active-toggle' : ''}" onclick="state.stereoTheory.subMode='axioms'; renderSidebar();">1. Аксиомы I–III и Плоскость</button>
+              <button class="action-btn ${st.subMode === 'parallel' ? 'active-toggle' : ''}" onclick="state.stereoTheory.subMode='parallel'; renderSidebar();">2. Параллельность в 3D</button>
+              <button class="action-btn ${st.subMode === 'skew_lines' ? 'active-toggle' : ''}" onclick="state.stereoTheory.subMode='skew_lines'; renderSidebar();">2.4 Скрещивающиеся</button>
+              <button class="action-btn ${st.subMode === 'perp' ? 'active-toggle' : ''}" onclick="state.stereoTheory.subMode='perp'; renderSidebar();">3.1–3.3 Перпендикулярность</button>
+              <button class="action-btn ${st.subMode === 'ttp' ? 'active-toggle' : ''}" onclick="state.stereoTheory.subMode='ttp'; renderSidebar();">3.4 Теорема о 3 перпенд. (ТТП)</button>
+              <button class="action-btn ${st.subMode === 'ege_plot' ? 'active-toggle' : ''}" style="border-color:#fbbf24; color:#fde68a;" onclick="state.stereoTheory.subMode='ege_plot'; renderSidebar();">🔥 3.2 Сюжет ЕГЭ из года в год</button>
+            </div>
+          </div>
+
+          ${st.subMode === 'axioms' ? `
+            <div class="info-card">
+              <h3><span>📜</span> 1.1–1.4 Аксиомы стереометрии и способы задать плоскость</h3>
+              <ul>
+                <li><strong>1.1 Аксиома I (\\(A_1\\)):</strong> Через любые <strong>три точки, не лежащие на одной прямой</strong>, проходит плоскость, и притом только одна! <em>(Вот почему штатив на 3 ножках никогда не качается на неровном полу!)</em></li>
+                <li><strong>1.2 Аксиома II (\\(A_2\\)):</strong> Если <strong>две точки прямой</strong> лежат в плоскости, то и <strong>все точки этой прямой</strong> лежат в этой плоскости (\\(A \\in \\alpha, B \\in \\alpha \\implies AB \\subset \\alpha\\)).</li>
+                <li><strong>1.3 Аксиома III (\\(A_3\\)):</strong> Если две плоскости имеют общую точку, то они имеют <strong>общую прямую</strong>, на которой лежат все общие точки этих плоскостей (\\(\\alpha \\cap \\beta = l\\)).</li>
+              </ul>
+              <div class="formula-box">
+                $$\\text{1.4 Четыре способа однозначно задать плоскость }\\alpha\\text{:}$$
+                $$\\text{1) 3 точки } (A,B,C) \\quad \\text{2) Прямая и точка } (a, M \\notin a)$$
+                $$\\text{3) Две пересекающиеся } (a \\cap b) \\quad \\text{4) Две параллельные } (a \\parallel b)$$
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="section-title">Показать на 3D-чертеже:</div>
+              <div class="btn-row">
+                <button class="action-btn ${st.planeWay === '3points' ? 'active-toggle' : ''}" onclick="state.stereoTheory.planeWay='3points'; renderSidebar();">1) По 3 точкам (A₁, A₂)</button>
+                <button class="action-btn ${st.planeWay === 'line_point' ? 'active-toggle' : ''}" onclick="state.stereoTheory.planeWay='line_point'; renderSidebar();">2) Прямая + точка</button>
+                <button class="action-btn ${st.planeWay === '2intersect' ? 'active-toggle' : ''}" onclick="state.stereoTheory.planeWay='2intersect'; renderSidebar();">3) Две пересекающиеся</button>
+                <button class="action-btn ${st.planeWay === '2parallel' ? 'active-toggle' : ''}" onclick="state.stereoTheory.planeWay='2parallel'; renderSidebar();">4) Две параллельные</button>
+                <button class="action-btn ${st.planeWay === '2planes_line' ? 'active-toggle' : ''}" onclick="state.stereoTheory.planeWay='2planes_line'; renderSidebar();">Аксиома III: Пересечение α ∩ β = l</button>
+              </div>
+            </div>
+          ` : st.subMode === 'parallel' ? `
+            <div class="info-card">
+              <h3><span>🛤️</span> 2.1–2.3 Параллельность прямых и плоскостей</h3>
+              <ul>
+                <li><strong>2.1 Параллельные прямые в 3D:</strong> лежат в одной плоскости и не пересекаются. Если \\(a \\parallel c\\) и \\(b \\parallel c\\), то \\(a \\parallel b\\) (транзитивность).</li>
+                <li><strong>2.2 Взаимное расположение прямой и плоскости:</strong> 1) прямая лежит в плоскости (\\(a \\subset \\alpha\\)); 2) пересекает в одной точке (\\(a \\cap \\alpha = M\\)); 3) параллельна плоскости (\\(a \\parallel \\alpha\\)).</li>
+                <li><strong>Признак параллельности прямой и плоскости:</strong> если прямая \\(a \\not\\subset \\alpha\\) параллельна <em>какой-нибудь одной прямой</em> \\(b \\subset \\alpha\\), то \\(a \\parallel \\alpha\\)!</li>
+                <li><strong>2.3 Признак параллельности двух плоскостей (\\(\\alpha \\parallel \\beta\\)):</strong> если <strong>две пересекающиеся прямые</strong> одной плоскости соответственно параллельны двум пересекающимся прямым другой плоскости:</li>
+              </ul>
+              <div class="formula-box">
+                $$a_1 \\parallel a_2, \\quad b_1 \\parallel b_2, \\quad a_1 \\cap b_1 = O \\quad\\implies\\quad \\alpha \\parallel \\beta$$
+              </div>
+            </div>
+          ` : st.subMode === 'skew_lines' ? `
+            <div class="info-card">
+              <h3><span>🔀</span> 2.4 Скрещивающиеся прямые в пространстве</h3>
+              <p>В 3D-пространстве появляется четвёртый вид расположения прямых, которого не было на плоскости: <strong>скрещивающиеся прямые</strong> — они <em>не пересекаются и НЕ лежат в одной плоскости</em> (как мост над шоссе!).</p>
+              <div class="formula-box">
+                $$\\text{Признак скрещивающихся прямых:}$$
+                $$b \\subset \\alpha, \\quad a \\cap \\alpha = M, \\quad M \\notin b \\quad\\implies\\quad a \\text{ и } b \\text{ — скрещивающиеся!}$$
+              </div>
+              <p class="hint">На 3D-чертеже: прямая b лежит в горизонтальной плоскости α (и содержит ребро куба AB), а прямая a протыкает плоскость α в точке M вне прямой b!</p>
+            </div>
+          ` : st.subMode === 'perp' ? `
+            <div class="info-card">
+              <h3><span>📐</span> 3.1 и 3.3 Перпендикулярность прямой и плоскостей</h3>
+              <ul>
+                <li><strong>3.1 Перпендикулярность прямой и плоскости (\\(l \\perp \\alpha\\)):</strong> прямая перпендикулярна плоскости, если она перпендикулярна <em>любой</em> прямой в этой плоскости.</li>
+                <li><strong>Признак перпендикулярности прямой и плоскости:</strong> чтобы доказать \\(l \\perp \\alpha\\), достаточно проверить, что \\(l\\) перпендикулярна <strong>всего ДВУМ пересекающимся прямым</strong> в плоскости \\(\\alpha\\):</li>
+              </ul>
+              <div class="formula-box">
+                $$l \\perp a, \\quad l \\perp b, \\quad a \\cap b = O \\; (a, b \\subset \\alpha) \\quad\\implies\\quad l \\perp \\alpha$$
+              </div>
+              <ul>
+                <li><strong>3.3 Признак перпендикулярности двух плоскостей (\\(\\alpha \\perp \\beta\\)):</strong> если плоскость \\(\\beta\\) проходит через прямую \\(l\\), перпендикулярную плоскости \\(\\alpha\\) (\\(l \\subset \\beta, l \\perp \\alpha\\)), то плоскости перпендикулярны: \\(\\alpha \\perp \\beta\\)!</li>
+              </ul>
+            </div>
+          ` : st.subMode === 'ttp' ? `
+            <div class="info-card">
+              <h3><span>⚡</span> 3.4 Теорема о трёх перпендикулярах (ТТП)</h3>
+              <p>Самая главная теорема для решения задач стереометрии! Пусть \\(AH \\perp \\alpha\\) — <strong>перпендикуляр</strong> к плоскости, \\(AM\\) — <strong>наклонная</strong>, а \\(HM\\) — её <strong>проекция</strong> на плоскость \\(\\alpha\\).</p>
+              <div class="formula-box">
+                $$\\text{Прямая } a \\subset \\alpha \\text{ перпендикулярна НАКЛОННОЙ } AM \\text{ тогда и только тогда,}$$
+                $$\\text{когда она перпендикулярна её ПРОЕКЦИИ } HM\\text{:}$$
+                $$a \\perp HM \\quad\\Longleftrightarrow\\quad a \\perp AM \\quad (90^\\circ \\Longleftrightarrow 90^\\circ)$$
+              </div>
+              <p class="hint">Двигай ползунок поворота прямой a в плоскости α: как только угол с проекцией HM станет 90°, угол с наклонной AM в 3D тоже станет строго 90°!</p>
+            </div>
+            <div class="control-group">
+              <div class="control-label">
+                <span>Угол между прямой \\(a \\subset \\alpha\\) и проекцией \\(HM\\):</span>
+                <span class="val" id="ttp-ang-val">${st.ttpAngleDeg}° ${Math.abs(st.ttpAngleDeg - 90) < 2 ? '(ТТП работает: оба угла 90°!)' : ''}</span>
+              </div>
+              <input type="range" min="30" max="150" step="2" value="${st.ttpAngleDeg}" oninput="state.stereoTheory.ttpAngleDeg=+this.value; document.getElementById('ttp-ang-val').innerText=this.value+'°'+(Math.abs(this.value-90)<2?' (ТТП работает: оба угла 90°!)':'');">
+              <div class="btn-row">
+                <button class="action-btn" onclick="state.stereoTheory.ttpAngleDeg=90; renderSidebar();">📐 Выставить ровно 90° (Срабатывание ТТП!)</button>
+              </div>
+            </div>
+          ` : `
+            <div class="info-card">
+              <h3><span>🔥</span> 3.2 Сюжет, встречающийся на ЕГЭ из года в год!</h3>
+              <p>Почему <strong>скрещивающиеся рёбра правильной пирамиды</strong> (например, боковое ребро \\(SA\\) и противоположное ребро основания \\(BC\\)) или <strong>главная диагональ куба \\(B_1D\\) и диагональ основания \\(AC\\)</strong> всегда взаимно перпендикулярны (\\(90^\\circ\\))?</p>
+              <div class="formula-box">
+                $$\\text{Доказательство в 2 строчки через ТТП:}$$
+                $$1)\\; SO \\perp (ABC) \\implies AH \\text{ — проекция наклонной } SA \\text{ на } (ABC)$$
+                $$2)\\; \\triangle ABC \\text{ равносторонний} \\implies \\text{медиана } AH \\perp BC \\implies \\text{по ТТП } SA \\perp BC!$$
+              </div>
+              <p>Точно так же в кубе: проекция диагонали куба \\(B_1D\\) на дно \\((ABCD)\\) — это диагональ квадрата \\(BD\\). А диагонали квадрата перпендикулярны (\\(BD \\perp AC\\)) \\(\\implies\\) по ТТП <strong>\\(B_1D \\perp AC\\) (и \\(B_1D \\perp (AB_1C)\\))</strong>!</p>
+            </div>
+            <div class="control-group">
+              <div class="btn-row">
+                <button class="action-btn ${st.egeShape === 'pyramid' ? 'active-toggle' : ''}" onclick="state.stereoTheory.egeShape='pyramid'; renderSidebar();">🔺 Сюжет 1: Пирамида (SA ⊥ BC)</button>
+                <button class="action-btn ${st.egeShape === 'cube_diag' ? 'active-toggle' : ''}" onclick="state.stereoTheory.egeShape='cube_diag'; renderSidebar();">🧊 Сюжет 2: Диагональ куба (B₁D ⊥ AC)</button>
+              </div>
+            </div>
+          `}
+        `;
+      } else if (state.mode3d === 'distances_angles_3d') {
+        const da = state.stereoDistAng;
+        return `
+          <div class="control-group">
+            <div class="section-title">Главы 4–5: Расстояния, Углы и Площадь проекции:</div>
+            <div class="btn-row">
+              <button class="action-btn ${da.subMode === 'point_plane' ? 'active-toggle' : ''}" onclick="state.stereoDistAng.subMode='point_plane'; renderSidebar();">4.1–4.2 Точка–Плоскость</button>
+              <button class="action-btn ${da.subMode === 'skew_dist' ? 'active-toggle' : ''}" onclick="state.stereoDistAng.subMode='skew_dist'; renderSidebar();">4.3 Расст. скрещивающихся</button>
+              <button class="action-btn ${da.subMode === 'skew_angle' ? 'active-toggle' : ''}" onclick="state.stereoDistAng.subMode='skew_angle'; renderSidebar();">5.1 Угол скрещивающихся</button>
+              <button class="action-btn ${da.subMode === 'line_plane_ang' ? 'active-toggle' : ''}" onclick="state.stereoDistAng.subMode='line_plane_ang'; renderSidebar();">5.2 Угол прямая–плоскость</button>
+              <button class="action-btn ${da.subMode === 'dihedral_ang' ? 'active-toggle' : ''}" onclick="state.stereoDistAng.subMode='dihedral_ang'; renderSidebar();">5.3 Угол между плоскостями</button>
+              <button class="action-btn ${da.subMode === 'area_proj' ? 'active-toggle' : ''}" style="border-color:#34d399; color:#6ee7b7;" onclick="state.stereoDistAng.subMode='area_proj'; renderSidebar();">5.4 Площадь проекции (S·cos φ)</button>
+            </div>
+          </div>
+
+          ${da.subMode === 'point_plane' ? `
+            <div class="info-card">
+              <h3><span>📏</span> 4.1–4.2 Расстояние от точки до плоскости и между \\(\\parallel\\)</h3>
+              <ul>
+                <li><strong>4.1 Между параллельными прямыми или плоскостями:</strong> длина общего перпендикуляра (в любой точке одинакова!).</li>
+                <li><strong>4.2 От точки \\(A\\) до плоскости \\(\\alpha\\):</strong> длина перпендикуляра \\(AH \\perp \\alpha\\) (кратчайшее расстояние от \\(A\\) до \\(\\alpha\\), короче любой наклонной \\(AM\\)).</li>
+                <li><strong>Секретное оружие ЕГЭ — Метод объёмов:</strong> чтобы найти расстояние \\(d\\) от точки \\(A\\) до плоскости \\(\\triangle BCD\\), выразим объём пирамиды \\(ABCD\\) двумя способами:</li>
+              </ul>
+              <div class="formula-box">
+                $$V = \\frac{1}{3} S_{\\triangle BCD} \\cdot d \\quad\\implies\\quad d = \\rho(A, BCD) = \\frac{3V}{S_{\\triangle BCD}}$$
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="control-label">Высота (расстояние \\(d = AH\\)): <span class="val" id="da-h-val">${da.heightH.toFixed(2)}</span></div>
+              <input type="range" min="0.5" max="1.9" step="0.05" value="${da.heightH}" oninput="state.stereoDistAng.heightH=+this.value; document.getElementById('da-h-val').innerText=(+this.value).toFixed(2);">
+            </div>
+          ` : da.subMode === 'skew_dist' ? `
+            <div class="info-card">
+              <h3><span>🌉</span> 4.3 Расстояние между скрещивающимися прямыми</h3>
+              <p>Расстояние \\(\\rho(a, b)\\) между скрещивающимися прямыми \\(a\\) и \\(b\\) можно найти <strong>3 способами</strong>:</p>
+              <ul>
+                <li><strong>1) Длина общего перпендикуляра \\(MN\\):</strong> единственного отрезка, который перпендикулярен сразу обеим прямым (\\(MN \\perp a\\) и \\(MN \\perp b\\)).</li>
+                <li><strong>2) Через параллельную плоскость:</strong> провести через прямую \\(b\\) плоскость \\(\\alpha \\parallel a\\) и найти расстояние от любой точки прямой \\(a\\) до плоскости \\(\\alpha\\).</li>
+                <li><strong>3) Метод ортогональной проекции:</strong> спроектировать обе прямые на плоскость \\(\\beta \\perp a\\) (тогда прямая \\(a\\) превратится в точку \\(A'\\), и расстояние равно перпендикуляру от точки \\(A'\\) до проекции \\(b'\\)!).</li>
+              </ul>
+            </div>
+          ` : da.subMode === 'skew_angle' ? `
+            <div class="info-card">
+              <h3><span>✂️</span> 5.1 Угол между скрещивающимися прямыми</h3>
+              <p>Как измерить угол между прямыми \\(a\\) и \\(b\\), если они даже не пересекаются?</p>
+              <ul>
+                <li>Берём любую удобную точку (например, на прямой \\(b\\)) и <strong>параллельно переносим</strong> туда прямую \\(a\\) (получаем прямую \\(a' \\parallel a\\)).</li>
+                <li>Угол между скрещивающимися прямыми по определению равен <strong>острому (или прямому) углу \\(\\varphi \\in (0^\\circ; 90^\\circ]\\)</strong> между пересекающимися прямыми \\(a'\\) и \\(b\\)!</li>
+              </ul>
+              <div class="formula-box">
+                $$a' \\parallel a, \\quad a' \\cap b = O \\quad\\implies\\quad \\angle(a, b) = \\angle(a', b) \\in (0^\\circ;\\; 90^\\circ]$$
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="control-label">
+                <span>🎬 Параллельный перенос прямой \\(a\\) до пересечения с \\(b\\):</span>
+                <span class="val" id="skew-shift-val">${Math.round(da.shiftSkewT * 100)}%</span>
+              </div>
+              <input type="range" min="0" max="1" step="0.02" value="${da.shiftSkewT}" oninput="state.stereoDistAng.shiftSkewT=+this.value; document.getElementById('skew-shift-val').innerText=Math.round(this.value*100)+'%';">
+            </div>
+          ` : da.subMode === 'line_plane_ang' ? `
+            <div class="info-card">
+              <h3><span>📐</span> 5.2 Угол между прямой и плоскостью</h3>
+              <p><strong>Определение:</strong> Углом между наклонной прямой \\(AM\\) и плоскостью \\(\\alpha\\) называется <strong>угол \\(\\varphi\\) между этой прямой и её прямоугольной проекцией \\(HM\\)</strong> на плоскость \\(\\alpha\\)!</p>
+              <div class="formula-box">
+                $$\\varphi = \\angle(AM, \\alpha) = \\angle AMH, \\qquad \\sin\\varphi = \\frac{AH}{AM} = \\frac{\\text{перпендикуляр}}{\\text{наклонная}}$$
+              </div>
+              <p class="hint">Это наименьший из всех углов, которые наклонная AM образует с прямыми плоскости α!</p>
+            </div>
+            <div class="control-group">
+              <div class="control-label">Угол наклона прямой к плоскости \\(\\varphi\\): <span class="val" id="lp-ang-val">${da.inclineDeg}°</span></div>
+              <input type="range" min="15" max="80" step="1" value="${da.inclineDeg}" oninput="state.stereoDistAng.inclineDeg=+this.value; document.getElementById('lp-ang-val').innerText=this.value+'°';">
+            </div>
+          ` : da.subMode === 'dihedral_ang' ? `
+            <div class="info-card">
+              <h3><span>📖</span> 5.3 Угол между плоскостями (Двугранный угол)</h3>
+              <p>Две пересекающиеся плоскости \\(\\alpha\\) и \\(\\beta\\) образуют «раскрытую книгу» с общим ребром \\(l = \\alpha \\cap \\beta\\). Как правильно построить угол между ними?</p>
+              <ul>
+                <li>Выбираем точку \\(O\\) на общем ребре \\(l\\).</li>
+                <li>Проводим в каждой плоскости <strong>перпендикуляр к общему ребру \\(l\\) в эту точку</strong>: \\(OA \\perp l\\) (\\(OA \\subset \\alpha\\)) и \\(OB \\perp l\\) (\\(OB \\subset \\beta\\)).</li>
+                <li>Угол \\(\\angle AOB = \\varphi\\) называется <strong>линейным углом двугранного угла</strong>!</li>
+              </ul>
+              <div class="formula-box">
+                $$l = \\alpha \\cap \\beta, \\quad OA \\perp l, \\quad OB \\perp l \\quad\\implies\\quad \\angle(\\alpha, \\beta) = \\angle AOB = \\varphi$$
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="control-label">Раскрытие двугранного угла \\(\\varphi\\): <span class="val" id="dih-ang-val">${da.inclineDeg}°</span></div>
+              <input type="range" min="15" max="90" step="1" value="${da.inclineDeg}" oninput="state.stereoDistAng.inclineDeg=+this.value; document.getElementById('dih-ang-val').innerText=this.value+'°';">
+            </div>
+          ` : `
+            <div class="info-card">
+              <h3><span>☀️</span> 5.4 Площадь фигуры и площадь её проекции</h3>
+              <p>Когда плоский многоугольник площади \\(S_{\\text{фиг}}\\) наклонён к плоскости \\(\\alpha\\) под углом \\(\\varphi\\), его ортогональная проекция («вертикальная тень» на пол) сжимается в одном направлении (перпендикулярно линии пересечения плоскостей) ровно в \\(\\cos\\varphi\\) раз, а вдоль линии пересечения не меняется!</p>
+              <div class="formula-box">
+                $$S_{\\text{проекции}} = S_{\\text{фигуры}} \\cdot \\cos\\varphi \\quad\\Longleftrightarrow\\quad S_{\\text{сечения}} = \\frac{S_{\\text{проекции}}}{\\cos\\varphi}$$
+              </div>
+              <p class="hint">Эта теорема на ЕГЭ позволяет находить площадь сложного наклонного сечения за 10 секунд через площадь его простой тени на основании!</p>
+            </div>
+            <div class="control-group">
+              <div class="control-label">Угол наклона фигуры к плоскости \\(\\varphi\\): <span class="val" id="proj-ang-val">${da.inclineDeg}° (cos φ = ${Math.cos(da.inclineDeg * Math.PI / 180).toFixed(3)})</span></div>
+              <input type="range" min="0" max="85" step="1" value="${da.inclineDeg}" oninput="state.stereoDistAng.inclineDeg=+this.value; document.getElementById('proj-ang-val').innerText=this.value+'° (cos φ = '+Math.cos(this.value*Math.PI/180).toFixed(3)+')';">
+            </div>
+          `}
+        `;
+      } else if (state.mode3d === 'volumes_surfaces_3d') {
+        const vs = state.volSurf3d;
+        const shapeSpecs = {
+          box: {
+            title: '1. Прямоугольный параллелепипед и Куб',
+            explain: 'Все 6 граней — прямоугольники (у куба — равные квадраты). Объём равен произведению трёх измерений (площадь дна на высоту):',
+            formulas: '$$S_{\\text{осн}} = a^2, \\qquad S_{\\text{бок}} = 4aH, \\qquad S_{\\text{полн}} = 2a^2 + 4aH$$\n$$V = S_{\\text{осн}} \\cdot H = a^2 H \\quad (\\text{для куба } V = a^3, \\; S_{\\text{полн}} = 6a^2)$$',
+            rLabel: 'Сторона квадратного основания a:'
+          },
+          prism: {
+            title: '2. Прямая правильная 6-угольная призма',
+            explain: 'Два равных правильных шестиугольника в основаниях и 6 прямоугольных боковых граней. Боковая поверхность — это периметр основания на высоту:',
+            formulas: '$$S_{\\text{осн}} = \\frac{3\\sqrt{3}}{2}a^2, \\qquad S_{\\text{бок}} = P_{\\text{осн}} \\cdot H = 6aH$$\n$$S_{\\text{полн}} = S_{\\text{бок}} + 2S_{\\text{осн}}, \\qquad V = S_{\\text{осн}} \\cdot H$$',
+            rLabel: 'Сторона шестиугольника основания a:'
+          },
+          pyramid: {
+            title: '3. Правильная 4-угольная пирамида (Высота H и Апофема l)',
+            explain: 'Основание — квадрат со стороной a. Важно не путать ВЫСОТУ пирамиды H (внутри, от вершины в центр дна) и АПОФЕМУ l (высоту боковой треугольной грани по склону, где l = √(H² + (a/2)²))! Объём пирамиды равен ровно 1/3 от объёма призмы:',
+            formulas: '$$l = \\sqrt{H^2 + \\left(\\frac{a}{2}\\right)^2}, \\qquad S_{\\text{осн}} = a^2, \\qquad S_{\\text{бок}} = \\frac{1}{2}P_{\\text{осн}} \\cdot l = 2al$$\n$$S_{\\text{полн}} = S_{\\text{осн}} + S_{\\text{бок}}, \\qquad V = \\frac{1}{3}S_{\\text{осн}} \\cdot H = \\frac{1}{3}a^2 H$$',
+            rLabel: 'Сторона квадрата основания a:'
+          },
+          cylinder: {
+            title: '4. Цилиндр (Круговой столбик)',
+            explain: 'Два круга радиуса R в основаниях. Если разрезать боковую стенку по вертикали и развернуть на стол — получится прямоугольник со сторонами 2πR и H!',
+            formulas: '$$S_{\\text{осн}} = \\pi R^2, \\qquad S_{\\text{бок}} = 2\\pi R H$$\n$$S_{\\text{полн}} = 2\\pi R H + 2\\pi R^2 = 2\\pi R(R + H), \\qquad V = \\pi R^2 H$$',
+            rLabel: 'Радиус основания R:'
+          },
+          cone: {
+            title: '5. Конус (Высота H и Образующая l)',
+            explain: 'В основании — круг радиуса R. Отрезок от вершины до края основания — ОБРАЗУЮЩАЯ l = √(R² + H²). Объём конуса равен ровно 1/3 от объёма цилиндра с тем же радиусом R и высотой H!',
+            formulas: '$$l = \\sqrt{R^2 + H^2}, \\qquad S_{\\text{осн}} = \\pi R^2, \\qquad S_{\\text{бок}} = \\pi R l$$\n$$S_{\\text{полн}} = \\pi R(R + l), \\qquad V = \\frac{1}{3}\\pi R^2 H$$',
+            rLabel: 'Радиус основания R:'
+          },
+          sphere: {
+            title: '6. Шар и Сфера (Теорема Архимеда 1 : 2 : 3)',
+            explain: 'Архимед доказал удивительный факт: если вписать шар радиуса R в цилиндр высоты H = 2R, то шар займёт ровно 2/3 объёма цилиндра (и ровно 2/3 его полной поверхности)!',
+            formulas: '$$S_{\\text{сферы}} = 4\\pi R^2, \\qquad V_{\\text{шара}} = \\frac{4}{3}\\pi R^3$$\n$$V_{\\text{конуса}} : V_{\\text{шара}} : V_{\\text{цилиндра}} = 1 : 2 : 3$$',
+            rLabel: 'Радиус шара R:'
+          }
+        };
+        const cur = shapeSpecs[vs.shape];
+        return `
+          <div class="control-group">
+            <div class="section-title">Выбери 3D-фигуру для изучения V и S:</div>
+            <div class="btn-row">
+              <button class="action-btn ${vs.shape === 'box' ? 'active-toggle' : ''}" onclick="setVolShape('box')">📦 Параллелепипед</button>
+              <button class="action-btn ${vs.shape === 'prism' ? 'active-toggle' : ''}" onclick="setVolShape('prism')">⬡ Призма</button>
+              <button class="action-btn ${vs.shape === 'pyramid' ? 'active-toggle' : ''}" onclick="setVolShape('pyramid')">🔺 Пирамида (⅓)</button>
+              <button class="action-btn ${vs.shape === 'cylinder' ? 'active-toggle' : ''}" onclick="setVolShape('cylinder')">🛢️ Цилиндр</button>
+              <button class="action-btn ${vs.shape === 'cone' ? 'active-toggle' : ''}" onclick="setVolShape('cone')">🍦 Конус (⅓)</button>
+              <button class="action-btn ${vs.shape === 'sphere' ? 'active-toggle' : ''}" onclick="setVolShape('sphere')">🌐 Шар (⅔ цил.)</button>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3><span>📏</span> ${cur.title}</h3>
+            <p>${cur.explain}</p>
+            <div class="formula-box">${cur.formulas}</div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">
+              <span>${cur.rLabel}</span>
+              <span class="val" id="vs-r-val">${vs.paramR.toFixed(1)} ед.</span>
+            </div>
+            <input type="range" min="1.5" max="4.5" step="0.1" value="${vs.paramR}" oninput="state.volSurf3d.paramR=+this.value; document.getElementById('vs-r-val').innerText=(+this.value).toFixed(1)+' ед.';">
+          </div>
+
+          ${vs.shape !== 'sphere' ? `
+            <div class="control-group">
+              <div class="control-label">
+                <span>Высота фигуры \\(H\\):</span>
+                <span class="val" id="vs-h-val">${vs.paramH.toFixed(1)} ед.</span>
+              </div>
+              <input type="range" min="1.5" max="5.5" step="0.1" value="${vs.paramH}" oninput="state.volSurf3d.paramH=+this.value; document.getElementById('vs-h-val').innerText=(+this.value).toFixed(1)+' ед.';">
+            </div>
+          ` : ''}
+
+          <div class="control-group">
+            <div class="control-label">
+              <span>💧 Наполнение объёма водой \\(V\\):</span>
+              <span class="val" id="vs-fill-val">${Math.round(vs.fillLevel * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.02" value="${vs.fillLevel}" oninput="state.volSurf3d.fillLevel=+this.value; document.getElementById('vs-fill-val').innerText=Math.round(this.value*100)+'%';">
+          </div>
+
+          <div class="control-group">
+            <div class="section-title">Подсветка элементов поверхности и объёма:</div>
+            <div class="btn-row">
+              <button class="action-btn ${vs.highlightPart === 'all' ? 'active-toggle' : ''}" onclick="state.volSurf3d.highlightPart='all'; renderSidebar();">✨ Вся поверхность (Sполн)</button>
+              <button class="action-btn ${vs.highlightPart === 'base' ? 'active-toggle' : ''}" onclick="state.volSurf3d.highlightPart='base'; renderSidebar();">🟢 Только основание (Sосн)</button>
+              <button class="action-btn ${vs.highlightPart === 'lateral' ? 'active-toggle' : ''}" onclick="state.volSurf3d.highlightPart='lateral'; renderSidebar();">🔵 Боковая (Sбок)</button>
+              ${(vs.shape === 'pyramid' || vs.shape === 'cone' || vs.shape === 'sphere') ? `
+                <button class="action-btn ${vs.showBoundingCylinder ? 'active-toggle' : ''}" style="flex:100%; border-color:#fbbf24; color:#fde68a;" onclick="state.volSurf3d.showBoundingCylinder=!state.volSurf3d.showBoundingCylinder; renderSidebar();">
+                  🥃 Показать внешнюю призму/цилиндр (почему объём равен ${vs.shape === 'sphere' ? '2/3' : '1/3'}!)
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      } else if (state.mode3d === 'platonic_solids') {
         const pl = state.platonic;
         const pInfo = {
           tetrahedron: {
@@ -2348,6 +3101,55 @@
             </div>
           </div>
         `;
+      } else if (state.mode3d === 'vectors_3d') {
+        const v3 = state.vectors3d;
+        return `
+          <div class="control-group">
+            <div class="btn-row">
+              <button class="action-btn ${v3.subMode === 'box_3d' ? 'active-toggle' : ''}" onclick="state.vectors3d.subMode='box_3d'; renderSidebar();">📦 3D-координаты {x, y, z}</button>
+              <button class="action-btn ${v3.subMode === 'cross_product' ? 'active-toggle' : ''}" onclick="state.vectors3d.subMode='cross_product'; renderSidebar();">🌪️ Векторное произведение a × b</button>
+            </div>
+          </div>
+
+          ${v3.subMode === 'box_3d' ? `
+            <div class="info-card">
+              <h3><span>📦</span> Вектор в 3D пространстве и параллелепипед</h3>
+              <p>В трёхмерном пространстве вектор раскладывается по трём взаимно перпендикулярным осям \\(X, Y, Z\\) (базисным ортам \\(\\vec{i}, \\vec{j}, \\vec{k}\\)) и является <strong>главной диагональю прямоугольного параллелепипеда</strong>:</p>
+              <div class="formula-box">
+                $$\\vec{a} = \{a_x;\\; a_y;\\; a_z\} = a_x\\vec{i} + a_y\\vec{j} + a_z\\vec{k}$$
+                $$|\\vec{a}| = \\sqrt{a_x^2 + a_y^2 + a_z^2} \\quad\\text{(3D теорема Пифагора!)}$$
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="control-label">Проекция \\(a_x\\) (ось X, красная): <span class="val" id="v3-ax">${v3.ax.toFixed(1)}</span></div>
+              <input type="range" min="-1.6" max="1.6" step="0.1" value="${v3.ax}" oninput="state.vectors3d.ax=+this.value; document.getElementById('v3-ax').innerText=(+this.value).toFixed(1);">
+            </div>
+            <div class="control-group">
+              <div class="control-label">Проекция \\(a_y\\) (ось Y, зелёная): <span class="val" id="v3-ay">${v3.ay.toFixed(1)}</span></div>
+              <input type="range" min="-1.6" max="1.6" step="0.1" value="${v3.ay}" oninput="state.vectors3d.ay=+this.value; document.getElementById('v3-ay').innerText=(+this.value).toFixed(1);">
+            </div>
+            <div class="control-group">
+              <div class="control-label">Проекция \\(a_z\\) (ось Z, синяя): <span class="val" id="v3-az">${v3.az.toFixed(1)}</span></div>
+              <input type="range" min="-1.6" max="1.6" step="0.1" value="${v3.az}" oninput="state.vectors3d.az=+this.value; document.getElementById('v3-az').innerText=(+this.value).toFixed(1);">
+            </div>
+          ` : `
+            <div class="info-card">
+              <h3><span>🌪️</span> Векторное произведение \\(\\vec{c} = \\vec{a} \\times \\vec{b}\\)</h3>
+              <p>В отличие от скалярного произведения, <strong>векторное произведение</strong> двух векторов в 3D даёт <strong>НОВЫЙ ВЕКТОР \\(\\vec{c}\\)</strong>:</p>
+              <ul>
+                <li>Направлен <strong>строго перпендикулярно (90°)</strong> и к \\(\\vec{a}\\), и к \\(\\vec{b}\\) (по правилу правой руки / буравчика).</li>
+                <li>Длина вектора \\(|\\vec{a} \\times \\vec{b}|\\) численно равна <strong>площади параллелограмма</strong>, построенного на векторах \\(\\vec{a}\\) и \\(\\vec{b}\\)!</li>
+              </ul>
+              <div class="formula-box">
+                $$|\\vec{a} \\times \\vec{b}| = |\\vec{a}|\\cdot|\\vec{b}|\\cdot\\sin\\varphi = S_{\\text{параллелограмма}}$$
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="control-label">Угол \\(\\varphi\\) между векторами \\(\\vec{a}\\) и \\(\\vec{b}\\) в плоскости: <span class="val" id="v3-ang">${v3.angleBetweenDeg}°</span></div>
+              <input type="range" min="15" max="165" step="5" value="${v3.angleBetweenDeg}" oninput="state.vectors3d.angleBetweenDeg=+this.value; document.getElementById('v3-ang').innerText=this.value+'°';">
+            </div>
+          `}
+        `;
       } else {
         return `
           <div class="info-card">
@@ -2369,6 +3171,10 @@
     function setPlatonic(s) {
       state.platonic.selected = s;
       if (s !== 'all5') state.currentShape3d = s;
+      renderSidebar();
+    }
+    function setVolShape(sh) {
+      state.volSurf3d.shape = sh;
       renderSidebar();
     }
     function set3DRenderStyle(st) { state.renderStyle3d = st; renderSidebar(); }
@@ -2439,6 +3245,117 @@
             <div class="quest-status" id="quest-cut-status">Настрой ползунки...</div>
           </div>
         `;
+      } else if (state.questId === 'quest_euler_collapse') {
+        return `
+          <div class="info-card">
+            <h3><span>💎</span> Квест 5: Собери 4 центра в одну точку!</h3>
+            <p>В обычном треугольнике Ортоцентр \\(H\\), Центроид \\(M\\), Центр описанной окружности \\(O\\) и Инцентр \\(I\\) — это 4 разные точки.</p>
+            <p><strong>Задание:</strong> Передвинь вершины \\(A, B, C\\) так, чтобы все 4 центра <strong>слились в одну-единственную супер-точку</strong> (а Прямая Эйлера схлопнулась в точку)!</p>
+            <div class="formula-box">$$H = M = O = I \\quad\\Longleftrightarrow\\quad \\triangle ABC \\text{ — равносторонний } (60^\\circ, 60^\\circ, 60^\\circ)$$</div>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn" onclick="presetTriangle('equilateral')">✨ Подсказка: Сделать равносторонним</button>
+          </div>
+          <div class="quest-card">
+            <div class="quest-header"><span>🏆</span> Разброс между центрами HO:</div>
+            <div class="quest-status" id="quest-euler-status">Двигай вершины к равенству сторон...</div>
+          </div>
+        `;
+      } else if (state.questId === 'quest_heron_bridge') {
+        const qe = state.questsExtra;
+        return `
+          <div class="info-card">
+            <h3><span>🌉</span> Квест 6: Задача Герона (Кратчайший путь к реке)</h3>
+            <p>Города \\(A\\) и \\(B\\) стоят на одном берегу прямой реки. Нужно построить водокачку \\(M\\) на берегу так, чтобы длина трубопровода \\(AM + MB\\) была <strong>минимальной</strong>!</p>
+            <div class="formula-box">
+              $$\\text{Секрет Герона: отразим } A \\to A' \\text{ симметрично через реку!}$$
+              $$AM + MB = A'M + MB \\ge A'B \\quad (\\text{минимум на прямой } A'B, \\text{ когда } \\angle 1 = \\angle 2!)$$
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Двигай точку моста \\(M\\) вдоль берега реки:</div>
+            <input type="range" min="-220" max="220" step="2" value="${qe.heronM_x}" oninput="state.questsExtra.heronM_x=+this.value;">
+          </div>
+          <div class="btn-row">
+            <button class="action-btn ${qe.showHeronMirror ? 'active-toggle' : ''}" onclick="state.questsExtra.showHeronMirror=!state.questsExtra.showHeronMirror; renderSidebar();">🪞 Показать зеркальное отражение A'</button>
+            <button class="action-btn" onclick="state.questsExtra.heronM_x=32; state.questsExtra.showHeronMirror=true; renderSidebar();">🎯 Точка оптимума (∠1 = ∠2)</button>
+          </div>
+          <div class="quest-card">
+            <div class="quest-header"><span>🏆</span> Длина пути \\(AM + MB\\):</div>
+            <div class="quest-status" id="quest-heron-status">Ищи минимум длины...</div>
+          </div>
+        `;
+      } else if (state.questId === 'quest_inscribed_quad') {
+        return `
+          <div class="info-card">
+            <h3><span>🛡️</span> Квест 7: Впиши четырёхугольник в окружность!</h3>
+            <p>Через три вершины \\(A, B, C\\) всегда проходит окружность (Аксиома/теорема об описанной окружности треугольника), а вот четвёртая вершина \\(D\\) оказалась снаружи!</p>
+            <p><strong>Задание:</strong> Потяни за жёлтую вершину \\(D\\) мышкой или пальцем так, чтобы она легла точно на окружность, и посмотри на <strong>сумму противоположных углов \\(\\angle B + \\angle D\\)</strong>!</p>
+            <div class="formula-box">$$\\text{Четырёхугольник вписан} \\quad\\Longleftrightarrow\\quad \\angle B + \\angle D = 180^\\circ \\;\\text{ и }\\; \\angle A + \\angle C = 180^\\circ$$</div>
+          </div>
+          <div class="quest-card">
+            <div class="quest-header"><span>🏆</span> Сумма противоположных углов \\(\\angle B + \\angle D\\):</div>
+            <div class="quest-status" id="quest-quad-status">Потяни вершину D на окружность...</div>
+          </div>
+        `;
+      } else if (state.questId === 'quest_perp_vectors') {
+        return `
+          <div class="info-card">
+            <h3><span>⚡</span> Квест 8: Векторный прицел (\\(\\vec{a} \\cdot \\vec{b} = 0\\))</h3>
+            <p>Даны красный вектор \\(\\vec{a} = \\lbrace 4;\\; 3 \\rbrace\\) и синий вектор \\(\\vec{b} = \\lbrace b_x;\\; b_y \\rbrace\\).</p>
+            <p><strong>Задание:</strong> Перетащи конец синего вектора \\(\\vec{b}\\) по узлам сетки так, чтобы <strong>скалярное произведение \\(\\vec{a} \\cdot \\vec{b} = a_x b_x + a_y b_y\\) стало строго равно \\(0\\)</strong> (при ненулевом \\(\\vec{b}\\))!</p>
+            <div class="formula-box">$$\\vec{a} \\cdot \\vec{b} = a_x b_x + a_y b_y = 0 \\quad\\Longleftrightarrow\\quad \\vec{a} \\perp \\vec{b} \\; (90^\\circ)$$</div>
+          </div>
+          <div class="btn-row">
+            <button class="action-btn" onclick="state.vectors2d.vecB={x:90,y:120,label:'b',color:'#38bdf8'};">🎯 Подсказка: положить b = {3; −4}</button>
+          </div>
+          <div class="quest-card">
+            <div class="quest-header"><span>🏆</span> Скалярное произведение \\(\\vec{a} \\cdot \\vec{b}\\):</div>
+            <div class="quest-status" id="quest-vec-status">Тяни конец синего вектора b...</div>
+          </div>
+        `;
+      } else if (state.questId === 'quest_spider_cube') {
+        const qe = state.questsExtra;
+        return `
+          <div class="info-card">
+            <h3><span>🐜</span> Квест 9: Муравей на 3D-кубе (Кратчайший путь по граням)</h3>
+            <p>Муравей ползёт по поверхности единичного куба (\\(a = 10\\)) из нижнего угла \\(A\\) в дальний верхний угол \\(C_1\\), пересекая общее ребро между передней и верхней гранью.</p>
+            <p><strong>Задание:</strong> Разверни верхнюю грань в одну плоскость с передней гранью и найди положение точки переползания \\(K\\), при котором путь \\(AK + KC_1\\) минимален!</p>
+            <div class="formula-box">$$L_{\\min} = \\sqrt{a^2 + (2a)^2} = a\\sqrt{5} \\approx 22{,}36 \\quad (\\text{ровно через середину ребра } t = 0{,}5!)$$</div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">1) Точка переползания \\(K\\) на ребре: <span class="val" id="ant-t-val">t = ${qe.antEdgeT.toFixed(2)}</span></div>
+            <input type="range" min="0" max="1" step="0.01" value="${qe.antEdgeT}" oninput="state.questsExtra.antEdgeT=+this.value; document.getElementById('ant-t-val').innerText='t = '+ (+this.value).toFixed(2);">
+          </div>
+          <div class="control-group">
+            <div class="control-label">2) Развернуть верхнюю грань в плоскость (подсказка!): <span class="val" id="ant-uf-val">${Math.round(qe.antUnfold * 100)}%</span></div>
+            <input type="range" min="0" max="1" step="0.02" value="${qe.antUnfold}" oninput="state.questsExtra.antUnfold=+this.value; document.getElementById('ant-uf-val').innerText=Math.round(this.value*100)+'%';">
+          </div>
+          <div class="quest-card">
+            <div class="quest-header"><span>🏆</span> Длина маршрута муравья \\(AK + KC_1\\):</div>
+            <div class="quest-status" id="quest-ant-status">Двигай точку K к оптимуму...</div>
+          </div>
+        `;
+      } else if (state.questId === 'quest_dimensions') {
+        return getDimensionsBridgeControlsHTML(true);
+      } else if (state.questId === 'quest_shadow_3d') {
+        const qe = state.questsExtra;
+        return `
+          <div class="info-card">
+            <h3><span>☀️</span> Квест 10: Ловец 3D-теней (Уменьши проекцию ровно вдвое!)</h3>
+            <p>Площадь треугольного солнечного паруса равна \\(S = 100\\text{ м}^2\\). Солнце светит вертикально сверху.</p>
+            <p><strong>Задание:</strong> Под каким углом \\(\\varphi\\) нужно наклонить парус к горизонтальной плоскости, чтобы площадь его вертикальной тени \\(S_{\\text{пр}}\\) стала равна ровно <strong>\\(50{,}0\\text{ м}^2\\)</strong> (ровно половине площади паруса)?</p>
+            <div class="formula-box">$$S_{\\text{пр}} = S \\cdot \\cos\\varphi = \\frac{1}{2}S \\quad\\Longleftrightarrow\\quad \\cos\\varphi = \\frac{1}{2} \\quad\\Longleftrightarrow\\quad \\varphi = 60^\\circ!$$</div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Угол наклона паруса \\(\\varphi\\): <span class="val" id="sh-ang-val">${qe.shadowTiltDeg}°</span></div>
+            <input type="range" min="0" max="85" step="1" value="${qe.shadowTiltDeg}" oninput="state.questsExtra.shadowTiltDeg=+this.value; document.getElementById('sh-ang-val').innerText=this.value+'°';">
+          </div>
+          <div class="quest-card">
+            <div class="quest-header"><span>🏆</span> Площадь тени \\(S_{\\text{пр}} = 100 \\cdot \\cos\\varphi\\):</div>
+            <div class="quest-status" id="quest-shadow-status">Настрой угол наклона φ...</div>
+          </div>
+        `;
       } else {
         const d = state.dido;
         return `
@@ -2446,7 +3363,7 @@
             <h3><span>👑</span> Квест 4: Задача царицы Дидоны</h3>
             <p>По легенде, царице Дидоне разрешили взять столько земли, сколько охватит верёвка из воловьей шкуры длины \\(P = 100\\text{ м}\\). Какая форма верёвки даст <strong>максимальную площадь</strong>?</p>
             <div class="formula-box">
-              $$S_n = \\frac{P^2}{4n \\cdot \\operatorname{tg}(\\pi/n)} \\;\\xrightarrow{n \to \\infty}\\; S_{\\text{круг}} = \\frac{P^2}{4\\pi} \approx 795{,}8\\text{ м}^2$$
+              $$S_n = \\frac{P^2}{4n \\cdot \\operatorname{tg}(\\pi/n)} \\;\\xrightarrow{n \\to \\infty}\\; S_{\\text{круг}} = \\frac{P^2}{4\\pi} \\approx 795{,}8\\text{ м}^2$$
             </div>
             <p class="hint">Наблюдай за живой анимацией верёвки на экране или двигай ползунок числа углов вручную!</p>
           </div>
@@ -2728,6 +3645,307 @@
       else if (m === 'circles_helper') renderCirclesHelperScene();
       else if (m === 'inscribed_central_2d') renderInscribedCentral2DScene();
       else if (m === 'trigonometry') renderTrigonometryScene();
+      else if (m === 'vectors_2d') renderVectors2DScene();
+    }
+
+    function drawVectorArrow(pStart, pEnd, color = '#f43f5e', width = 3.5, label = '', dashed = false, normalOffset = -16) {
+      const dx = pEnd.x - pStart.x;
+      const dy = pEnd.y - pStart.y;
+      const len = Math.hypot(dx, dy);
+      if (len < 2) return;
+
+      const angle = Math.atan2(dy, dx);
+      const headLen = Math.min(16, Math.max(10, len * 0.22));
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(pStart.x, pStart.y);
+      ctx.lineTo(pEnd.x, pEnd.y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash(dashed ? [6, 6] : []);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Arrowhead cone
+      ctx.beginPath();
+      ctx.moveTo(pEnd.x, pEnd.y);
+      ctx.lineTo(pEnd.x - headLen * Math.cos(angle - Math.PI / 6.5), pEnd.y - headLen * Math.sin(angle - Math.PI / 6.5));
+      ctx.lineTo(pEnd.x - headLen * 0.72 * Math.cos(angle), pEnd.y - headLen * 0.72 * Math.sin(angle));
+      ctx.lineTo(pEnd.x - headLen * Math.cos(angle + Math.PI / 6.5), pEnd.y - headLen * Math.sin(angle + Math.PI / 6.5));
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+
+      if (label) {
+        drawSegmentLabel(pStart, pEnd, label, color, normalOffset);
+      }
+    }
+
+    function drawCoordinateAxes2D(ox, oy, unitPx = 30) {
+      // Subtle coordinate grid aligned with (ox, oy)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let x = ox % unitPx; x < canvas.width; x += unitPx) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = oy % unitPx; y < canvas.height; y += unitPx) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Main X and Y axes
+      drawVectorArrow({ x: 30, y: oy }, { x: canvas.width - 30, y: oy }, 'rgba(148, 163, 184, 0.45)', 1.8);
+      drawVectorArrow({ x: ox, y: canvas.height - 25 }, { x: ox, y: 25 }, 'rgba(148, 163, 184, 0.45)', 1.8);
+
+      if (state.uiLayers.showLabels) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('Ось X', canvas.width - 35, oy - 10);
+        ctx.textAlign = 'left';
+        ctx.fillText('Ось Y', ox + 10, 35);
+        ctx.fillText('O(0;0)', ox - 42, oy + 16);
+      }
+    }
+
+    function renderVectors2DScene() {
+      const v2 = state.vectors2d;
+      const unit = 30; // 30 px = 1 unit
+      const ox = Math.round((canvas.width / 2 - 20) / unit) * unit;
+      const oy = Math.round((canvas.height / 2 + 15) / unit) * unit;
+
+      drawCoordinateAxes2D(ox, oy, unit);
+
+      // Math coordinates of vecA and vecB (where +Y is up!)
+      const ax = +(v2.vecA.x / unit).toFixed(1);
+      const ay = +(-v2.vecA.y / unit).toFixed(1);
+      const bx = +(v2.vecB.x / unit).toFixed(1);
+      const by = +(-v2.vecB.y / unit).toFixed(1);
+      const lenA = Math.hypot(ax, ay);
+      const lenB = Math.hypot(bx, by);
+
+      if (v2.subMode === 'basics') {
+        // Snap baseA to half-units so coordinates x1, y1, x2, y2 are clean numbers!
+        const x1 = +(v2.baseA.x / unit).toFixed(1);
+        const y1 = +(-v2.baseA.y / unit).toFixed(1);
+        const x2 = +(x1 + ax).toFixed(1);
+        const y2 = +(y1 + ay).toFixed(1);
+
+        const A = { x: ox + x1 * unit, y: oy - y1 * unit };
+        const B = { x: ox + x2 * unit, y: oy - y2 * unit };
+        const corner = { x: B.x, y: A.y };
+
+        // Right triangle of components ax = x2 - x1 and ay = y2 - y1
+        drawLine(A, corner, '#38bdf8', 2.4, true);
+        drawLine(corner, B, '#34d399', 2.4, true);
+        if (Math.abs(v2.vecA.x) > 20 && Math.abs(v2.vecA.y) > 20) {
+          drawRightAngleSquare(corner, A, B, 12, '#fbbf24');
+        }
+        drawSegmentLabel(A, corner, `ax = x₂ − x₁ = ${x2} − (${x1}) = ${ax}`, '#7dd3fc', 18);
+        drawSegmentLabel(corner, B, `ay = y₂ − y₁ = ${y2} − (${y1}) = ${ay}`, '#6ee7b7', 18);
+
+        // Main vector AB
+        drawVectorArrow(A, B, '#f43f5e', 4.2, `AB = {${ax}; ${ay}}, |AB| = √(${ax}²+${ay}²) ≈ ${lenA.toFixed(2)}`, false, -20);
+
+        // Equal free vector a' starting from Origin O(0,0)
+        const O = { x: ox, y: oy };
+        const B_orig = { x: ox + v2.vecA.x, y: oy + v2.vecA.y };
+        drawVectorArrow(O, B_orig, 'rgba(244, 63, 94, 0.5)', 3, `Равный a' = {${ax}; ${ay}} от O(0;0)`, true, -16);
+
+        // Basis unit vectors i and j at Origin
+        drawVectorArrow(O, { x: ox + unit, y: oy }, '#38bdf8', 3);
+        drawVectorArrow(O, { x: ox, y: oy - unit }, '#34d399', 3);
+
+        drawDraggableHandle({ x: A.x, y: A.y, label: `A(${x1}; ${y1}) — начало`, color: '#fbbf24' });
+        drawDraggableHandle({ x: B.x, y: B.y, label: `B(${x2}; ${y2}) — конец`, color: '#f43f5e' });
+
+        // Live Step-by-Step Calculation Box at bottom-left of Canvas
+        if (state.uiLayers.showLabels) {
+          const boxY = canvas.height - 122;
+          ctx.fillStyle = 'rgba(17, 24, 39, 0.92)';
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.roundRect(16, boxY, 445, 76, 10);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.textAlign = 'left';
+          ctx.font = 'bold 12px monospace';
+          ctx.fillStyle = '#fde68a';
+          ctx.fillText(`1) Координаты AB (Конец B минус Начало A):`, 26, boxY + 20);
+          ctx.fillStyle = '#7dd3fc';
+          ctx.fillText(`   AB = { x₂−x₁ ; y₂−y₁ } = { ${x2}−(${x1}) ; ${y2}−(${y1}) } = { ${ax} ; ${ay} }`, 26, boxY + 40);
+          ctx.fillStyle = '#6ee7b7';
+          ctx.fillText(`2) Длина |AB| = √((x₂−x₁)²+(y₂−y₁)²) = √(${ax}²+${ay}²) = √${(ax*ax+ay*ay).toFixed(1)} ≈ ${lenA.toFixed(2)}`, 26, boxY + 60);
+        }
+
+        updateMetrics({
+          'Начало A и Конец B': `A(${x1}; ${y1}), B(${x2}; ${y2})`,
+          'Координаты {x₂−x₁; y₂−y₁}': `{ ${ax} ; ${ay} }`,
+          'Сумма квадратов ax²+ay²': `${(ax*ax).toFixed(1)} + ${(ay*ay).toFixed(1)} = ${(ax*ax + ay*ay).toFixed(1)}`,
+          'Длина |AB| = √(ax²+ay²)': `√${(ax*ax + ay*ay).toFixed(1)} ≈ ${lenA.toFixed(2)} ✨`
+        }, 'Координаты и Длина Вектора');
+      } else if (v2.subMode === 'addition') {
+        const O = { x: ox - 70, y: oy + 40 };
+        const tipA = { x: O.x + v2.vecA.x, y: O.y + v2.vecA.y };
+        const tipB_fromO = { x: O.x + v2.vecB.x, y: O.y + v2.vecB.y };
+        const tipSum = { x: O.x + v2.vecA.x + v2.vecB.x, y: O.y + v2.vecA.y + v2.vecB.y };
+
+        // Parallelogram dashed completion
+        if (v2.addRule === 'parallelogram' || v2.addRule === 'both') {
+          ctx.beginPath();
+          ctx.moveTo(O.x, O.y);
+          ctx.lineTo(tipA.x, tipA.y);
+          ctx.lineTo(tipSum.x, tipSum.y);
+          ctx.lineTo(tipB_fromO.x, tipB_fromO.y);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(52, 211, 153, 0.1)';
+          ctx.fill();
+          drawLine(tipA, tipSum, 'rgba(56, 189, 248, 0.45)', 2, true);
+          drawLine(tipB_fromO, tipSum, 'rgba(244, 63, 94, 0.45)', 2, true);
+        }
+
+        // Animated translated copy of vector b sliding from O to tipA according to shiftStep!
+        const t = v2.addRule === 'parallelogram' ? 0 : (v2.addRule === 'triangle' ? 1 : v2.shiftStep);
+        const bStart = { x: O.x + v2.vecA.x * t, y: O.y + v2.vecA.y * t };
+        const bEnd = { x: bStart.x + v2.vecB.x, y: bStart.y + v2.vecB.y };
+
+        // Vector a from O
+        drawVectorArrow(O, tipA, '#f43f5e', 4, `a = {${ax}; ${ay}}`, false, -16);
+
+        // Vector b at O (for parallelogram or reference)
+        if (t > 0.05) {
+          drawVectorArrow(O, tipB_fromO, 'rgba(56, 189, 248, 0.4)', 2.5, 'b (от точки O)', true, 16);
+        }
+        // Translated vector b
+        drawVectorArrow(bStart, bEnd, '#38bdf8', 4, `b = {${bx}; ${by}}`, false, -16);
+
+        // Resultant Sum Vector c = a + b (Emerald)
+        const sx = +(ax + bx).toFixed(1), sy = +(ay + by).toFixed(1);
+        const lenSum = Math.hypot(sx, sy);
+        drawVectorArrow(O, tipSum, '#34d399', 4.5, `Сумма a + b = {${sx}; ${sy}}`, false, 18);
+
+        drawPointMarker(O, '#fff', 'Общее начало O', 14);
+        drawDraggableHandle({ x: tipA.x, y: tipA.y, label: 'a (тяни!)', color: '#f43f5e' });
+        drawDraggableHandle({ x: tipB_fromO.x, y: tipB_fromO.y, label: 'b (тяни!)', color: '#38bdf8' });
+        drawPointMarker(tipSum, '#34d399', 'Конец суммы a + b', -14);
+
+        updateMetrics({
+          'Вектор a': `{ ${ax} ; ${ay} } (|a|=${lenA.toFixed(1)})`,
+          'Вектор b': `{ ${bx} ; ${by} } (|b|=${lenB.toFixed(1)})`,
+          'Сумма a + b': `{ ${sx} ; ${sy} } ✨`,
+          'Длина суммы |a+b|': `${lenSum.toFixed(2)} (≤ ${(lenA+lenB).toFixed(1)})`
+        }, 'Сложение Векторов');
+      } else if (v2.subMode === 'sub_scalar') {
+        // Left side: Subtraction a - b (connecting tips, pointing to a!)
+        const O1 = { x: ox - 160, y: oy + 30 };
+        const tipA = { x: O1.x + v2.vecA.x, y: O1.y + v2.vecA.y };
+        const tipB = { x: O1.x + v2.vecB.x, y: O1.y + v2.vecB.y };
+
+        drawVectorArrow(O1, tipA, '#f43f5e', 3.8, `a = {${ax}; ${ay}}`, false, -16);
+        drawVectorArrow(O1, tipB, '#38bdf8', 3.8, `b = {${bx}; ${by}}`, false, 16);
+        // Difference vector a - b goes from tipB to tipA!
+        const dxSub = +(ax - bx).toFixed(1), dySub = +(ay - by).toFixed(1);
+        drawVectorArrow(tipB, tipA, '#fbbf24', 4.2, `Разность a − b = {${dxSub}; ${dySub}} (стрелка к a!)`, false, -18);
+
+        drawPointMarker(O1, '#fff', 'O', 14);
+        drawDraggableHandle({ x: tipA.x, y: tipA.y, label: 'a (тяни!)', color: '#f43f5e' });
+        drawDraggableHandle({ x: tipB.x, y: tipB.y, label: 'b (тяни!)', color: '#38bdf8' });
+
+        // Right side: Scalar multiplication k * a
+        const O2 = { x: ox + 170, y: oy + 20 };
+        const k = v2.scalarK;
+        const tipKA = { x: O2.x + v2.vecA.x * k, y: O2.y + v2.vecA.y * k };
+        drawVectorArrow(O2, { x: O2.x + v2.vecA.x, y: O2.y + v2.vecA.y }, 'rgba(244, 63, 94, 0.4)', 2.5, 'Исходный a', true, -14);
+        drawVectorArrow(O2, tipKA, '#c084fc', 4.2, `${k.toFixed(1)}·a = {${(ax*k).toFixed(1)}; ${(ay*k).toFixed(1)}}`, false, 18);
+        drawPointMarker(O2, '#fff', `Умножение на k = ${k.toFixed(1)}`, 16);
+
+        updateMetrics({
+          'Разность a − b': `{ ${dxSub} ; ${dySub} }`,
+          'Куда смотрит a − b': 'К уменьшаемому вектору a!',
+          'Вектор k·a': `{ ${(ax*k).toFixed(1)} ; ${(ay*k).toFixed(1)} }`,
+          'Направление k·a': k > 0 ? 'Сонаправлен (↑↑)' : (k < 0 ? 'Противоположен (↑↓)' : 'Нулевой вектор 0')
+        }, 'Вычитание и Умножение на k');
+      } else if (v2.subMode === 'dot_product') {
+        const O = { x: ox, y: oy };
+        const tipA = { x: O.x + v2.vecA.x, y: O.y + v2.vecA.y };
+        const tipB = { x: O.x + v2.vecB.x, y: O.y + v2.vecB.y };
+
+        // Dot product in math units
+        const dotVal = ax * bx + ay * by;
+        const cosPhi = (lenA > 0.01 && lenB > 0.01) ? Math.max(-1, Math.min(1, dotVal / (lenA * lenB))) : 0;
+        const phiDeg = Math.acos(cosPhi) * 180 / Math.PI;
+
+        // Projection of tipB onto line OA
+        const footB = projectPointOnLine(tipB, O, tipA);
+        drawLine(O, footB, 'rgba(251, 191, 36, 0.6)', 5);
+        drawLine(tipB, footB, '#fbbf24', 2, true);
+        drawRightAngleSquare(footB, tipB, tipA, 12, '#fbbf24');
+        drawSegmentLabel(O, footB, `Проекция |b|cos φ = ${(lenB * cosPhi).toFixed(2)}`, '#fde68a', 18);
+
+        // Angle arc between a and b
+        const isPerp = Math.abs(phiDeg - 90) < 2.0;
+        const arcCol = isPerp ? '#fbbf24' : (dotVal > 0 ? '#34d399' : '#f43f5e');
+        if (isPerp) {
+          drawRightAngleSquare(O, tipA, tipB, 22, '#fbbf24');
+        } else {
+          drawAngleArc(O, tipA, tipB, 48, arcCol, `φ = ${phiDeg.toFixed(1)}°`);
+        }
+
+        drawVectorArrow(O, tipA, '#f43f5e', 4, `a = {${ax}; ${ay}} (|a|=${lenA.toFixed(1)})`, false, -18);
+        drawVectorArrow(O, tipB, '#38bdf8', 4, `b = {${bx}; ${by}} (|b|=${lenB.toFixed(1)})`, false, 18);
+
+        drawPointMarker(O, '#fff', 'O(0;0)', -14);
+        drawDraggableHandle({ x: tipA.x, y: tipA.y, label: 'a (тяни!)', color: '#f43f5e' });
+        drawDraggableHandle({ x: tipB.x, y: tipB.y, label: 'b (тяни!)', color: '#38bdf8' });
+
+        updateMetrics({
+          'Угол φ между a и b': `${phiDeg.toFixed(1)}° (cos φ = ${cosPhi.toFixed(3)})`,
+          'Через координаты ax·bx+ay·by': `${(ax*bx).toFixed(1)} + ${(ay*by).toFixed(1)} = ${dotVal.toFixed(2)}`,
+          'Через длины |a||b|cos φ': `${dotVal.toFixed(2)} ✨`,
+          'Вердикт по углу': isPerp ? 'a ⊥ b (Перпендикулярны, 90°!)' : (dotVal > 0 ? 'Острый угол (a·b > 0)' : 'Тупой угол (a·b < 0)')
+        }, 'Скалярное Произведение a · b');
+      } else {
+        // 5. Vectors in Geometry: Midpoint/Median vector OM = 1/2 (OA + OB) & Centroid G = 1/3(OA + OB + OC)
+        const O = { x: ox - 140, y: oy + 110 };
+        const A = { x: O.x + v2.vecA.x * 1.4, y: O.y + v2.vecA.y * 1.4 };
+        const B = { x: O.x + v2.vecB.x * 1.6 + 110, y: O.y + v2.vecB.y * 0.4 - 20 };
+        const t = v2.divRatioT;
+        const P = { x: A.x * (1 - t) + B.x * t, y: A.y * (1 - t) + B.y * t };
+        const G = { x: (O.x + A.x + B.x) / 3, y: (O.y + A.y + B.y) / 3 };
+
+        // Triangle OAB
+        ctx.beginPath();
+        ctx.moveTo(O.x, O.y); ctx.lineTo(A.x, A.y); ctx.lineTo(B.x, B.y);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.1)';
+        ctx.fill();
+        drawLine(A, B, '#fbbf24', 3);
+
+        drawVectorArrow(O, A, '#f43f5e', 3.8, 'Вектор OA', false, -16);
+        drawVectorArrow(O, B, '#38bdf8', 3.8, 'Вектор OB', false, 16);
+        drawVectorArrow(O, P, '#34d399', 4.2, Math.abs(t - 0.5) < 0.03 ? 'Медиана OM = ½(OA + OB)' : `OP = ${(1-t).toFixed(2)}·OA + ${t.toFixed(2)}·OB`, false, -16);
+
+        if (Math.abs(t - 0.5) < 0.03) {
+          drawTickMarks(A, P, 1, '#34d399');
+          drawTickMarks(P, B, 1, '#34d399');
+        }
+
+        drawPointMarker(O, '#fff', 'Вершина O', 14);
+        drawPointMarker(P, '#34d399', Math.abs(t - 0.5) < 0.03 ? 'M (Середина AB)' : 'P', -14);
+        drawPointMarker(G, '#fbbf24', 'G (Центроид: GA+GB+GO = 0)', 14);
+        drawDraggableHandle({ x: A.x, y: A.y, label: 'A (тяни!)', color: '#f43f5e' });
+        drawDraggableHandle({ x: B.x, y: B.y, label: 'B (тяни!)', color: '#38bdf8' });
+
+        updateMetrics({
+          'Вектор медианы OM': '½ (OA + OB)',
+          'Текущая точка P': `${(1-t).toFixed(2)}·OA + ${t.toFixed(2)}·OB`,
+          'Свойство центроида G': 'GO + GA + GB = 0 ✨',
+          'Отношение AP : PB': `${Math.round(t*100)} : ${Math.round((1-t)*100)}`
+        }, 'Векторы в Геометрии');
+      }
     }
 
     function renderInscribedCentral2DScene() {
@@ -4576,13 +5794,116 @@
 
     function render3D() {
       drawSubtleGrid();
-      if (state.camera.autoRotate) state.camera.rotY += 0.005;
-      if (state.mode3d === 'platonic_solids') renderPlatonicSolids3D();
+      if (state.camera.autoRotate) state.camera.rotY += 0.004;
+      if (state.mode3d === 'dimensions_bridge_3d') renderDimensionsBridge3DScene();
+      else if (state.mode3d === 'axioms_perp_3d') renderAxiomsPerp3DScene();
+      else if (state.mode3d === 'distances_angles_3d') renderDistancesAngles3DScene();
+      else if (state.mode3d === 'volumes_surfaces_3d') renderVolumesSurfaces3D();
+      else if (state.mode3d === 'platonic_solids') renderPlatonicSolids3D();
       else if (state.mode3d === 'gallery' || state.mode3d === 'euler_poly') renderStandard3DPoly(state.currentShape3d);
       else if (state.mode3d === 'revolve') renderRevolve3D();
       else if (state.mode3d === 'sections') renderSectionPlane3D();
       else if (state.mode3d === 'unfolding') renderUnfolding3D();
       else if (state.mode3d === 'circles_angles_3d') renderCirclesAngles3D();
+      else if (state.mode3d === 'vectors_3d') renderVectors3DScene();
+    }
+
+    function renderVectors3DScene() {
+      const v3 = state.vectors3d;
+      const w = canvas.width, h = canvas.height;
+      const O3 = { x: 0, y: 0, z: 0 };
+      const O = project3D(O3, w, h);
+
+      // Draw 3D Coordinate Axes X, Y, Z from O
+      const axisLen = 1.75;
+      const X_end = project3D({ x: axisLen, y: 0, z: 0 }, w, h);
+      const Y_end = project3D({ x: 0, y: axisLen, z: 0 }, w, h);
+      const Z_end = project3D({ x: 0, y: 0, z: axisLen }, w, h);
+
+      drawVectorArrow(O, X_end, 'rgba(244, 63, 94, 0.55)', 2, 'Ось X (i)', true, -12);
+      drawVectorArrow(O, Y_end, 'rgba(52, 211, 153, 0.55)', 2, 'Ось Y (j)', true, -12);
+      drawVectorArrow(O, Z_end, 'rgba(56, 189, 248, 0.55)', 2, 'Ось Z (k)', true, 12);
+
+      if (v3.subMode === 'box_3d') {
+        const { ax, ay, az } = v3;
+        const len3D = Math.hypot(ax, ay, az);
+
+        // 8 vertices of the 3D coordinate parallelepiped [0, ax] x [0, ay] x [0, az]
+        const boxVerts = [
+          { x: 0, y: 0, z: 0 },    { x: ax, y: 0, z: 0 },
+          { x: ax, y: ay, z: 0 },  { x: 0, y: ay, z: 0 },
+          { x: 0, y: 0, z: az },   { x: ax, y: 0, z: az },
+          { x: ax, y: ay, z: az }, { x: 0, y: ay, z: az }
+        ].map(pt => project3D(pt, w, h));
+
+        const boxEdges = [
+          [0,1],[1,2],[2,3],[3,0],
+          [4,5],[5,6],[6,7],[7,4],
+          [0,4],[1,5],[2,6],[3,7]
+        ];
+        if (state.uiLayers.showEdges3D) {
+          boxEdges.forEach(([i, j]) => drawLine(boxVerts[i], boxVerts[j], 'rgba(255, 255, 255, 0.28)', 1.5, true));
+          // Floor diagonal in XZ plane (sqrt(ax^2 + az^2))
+          drawLine(boxVerts[0], boxVerts[5], 'rgba(251, 191, 36, 0.6)', 2, true);
+        }
+
+        // Component vectors along X, Y, Z
+        drawVectorArrow(boxVerts[0], boxVerts[1], '#f43f5e', 3, `ax = ${ax.toFixed(1)}`, false, 14);
+        drawVectorArrow(boxVerts[0], boxVerts[3], '#34d399', 3, `ay = ${ay.toFixed(1)}`, false, -14);
+        drawVectorArrow(boxVerts[0], boxVerts[4], '#38bdf8', 3, `az = ${az.toFixed(1)}`, false, 14);
+
+        // Main 3D vector a = {ax, ay, az} (diagonal of parallelepiped)
+        drawVectorArrow(boxVerts[0], boxVerts[6], '#fbbf24', 4.5, `Вектор a = {${ax.toFixed(1)}; ${ay.toFixed(1)}; ${az.toFixed(1)}}`, false, -16);
+        drawPointMarker(boxVerts[6], '#fbbf24', `|a| = ${len3D.toFixed(2)}`, -12);
+
+        updateMetrics({
+          'Координаты 3D вектора': `{ ${ax.toFixed(1)} ; ${ay.toFixed(1)} ; ${az.toFixed(1)} }`,
+          'Базисное разложение': `${ax.toFixed(1)}i + ${ay.toFixed(1)}j + ${az.toFixed(1)}k`,
+          'Длина |a| = √(ax²+ay²+az²)': `${len3D.toFixed(2)} ✨`,
+          'Геометрический смысл': 'Диагональ 3D-параллелепипеда'
+        }, 'Вектор в 3D Пространстве');
+      } else {
+        // 3D Cross Product c = a x b
+        const phiRad = (v3.angleBetweenDeg * Math.PI) / 180;
+        const lenA = 1.35, lenB = 1.35;
+        const A3 = { x: lenA, y: 0, z: 0 };
+        const B3 = { x: lenB * Math.cos(phiRad), y: 0, z: lenB * Math.sin(phiRad) };
+        const S_3 = { x: A3.x + B3.x, y: 0, z: A3.z + B3.z };
+
+        // Cross product magnitude |a x b| = |a||b|sin(phi), pointing along +Y (perpendicular to XZ plane!)
+        const crossMag = lenA * lenB * Math.sin(phiRad);
+        const C3 = { x: 0, y: crossMag * 0.85, z: 0 };
+
+        const pA = project3D(A3, w, h);
+        const pB = project3D(B3, w, h);
+        const pS = project3D(S_3, w, h);
+        const pC = project3D(C3, w, h);
+
+        // Parallelogram spanned by a and b in XZ plane
+        if (state.uiLayers.showFaces3D) {
+          ctx.beginPath();
+          ctx.moveTo(O.x, O.y); ctx.lineTo(pA.x, pA.y); ctx.lineTo(pS.x, pS.y); ctx.lineTo(pB.x, pB.y);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+        }
+
+        drawVectorArrow(O, pA, '#f43f5e', 4, 'Вектор a', false, 15);
+        drawVectorArrow(O, pB, '#38bdf8', 4, `Вектор b (φ = ${v3.angleBetweenDeg}°)`, false, 15);
+        drawVectorArrow(O, pC, '#fbbf24', 4.8, `c = a × b (|c| = S = ${crossMag.toFixed(2)})`, false, -18);
+
+        drawPointMarker(O, '#fff', 'O (c ⊥ a и c ⊥ b, 90°!)', 16);
+
+        updateMetrics({
+          'Угол φ между a и b': `${v3.angleBetweenDeg}°`,
+          'Площадь параллелограмма S': `|a||b|sin φ = ${crossMag.toFixed(2)}`,
+          'Вектор c = a × b': 'Перпендикулярен плоскости (a, b)!',
+          'Правило направления': 'Правило правой руки (буравчика) ✨'
+        }, 'Векторное Произведение 3D');
+      }
     }
 
     function renderCirclesAngles3D() {
@@ -4808,6 +6129,1095 @@
         'Вписанный ∠APB': `${insDeg.toFixed(1)}° (½ дуги) ✨`,
         'Отношение ∠AOB / ∠APB': 'Строго 2 : 1'
       }, 'Углы в 3D-окружности');
+    }
+
+    function drawPlanePatch3D(pts3, fillCol, alpha, strokeCol, w, h) {
+      const proj = pts3.map(p => project3D(p, w, h));
+      ctx.beginPath();
+      proj.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.closePath();
+      if (state.uiLayers.showFaces3D) {
+        ctx.fillStyle = fillCol;
+        ctx.globalAlpha = alpha;
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+      if (state.uiLayers.showEdges3D) {
+        ctx.strokeStyle = strokeCol;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      return proj;
+    }
+
+    function renderDimensionsBridge3DScene() {
+      const db = state.dimBridge;
+      const w = canvas.width, h = canvas.height;
+
+      if (db.autoAnimate) {
+        db.dimProgress += 0.009 * db.animDir;
+        if (db.dimProgress >= 4.0) { db.dimProgress = 4.0; db.animDir = -1; }
+        else if (db.dimProgress <= 0.0) { db.dimProgress = 0.0; db.animDir = 1; }
+        const sl = document.getElementById('dim-bridge-slider');
+        if (sl) sl.value = db.dimProgress;
+        const vl = document.getElementById('dim-prog-val');
+        if (vl) vl.innerText = db.dimProgress.toFixed(2) + ' D';
+      }
+
+      if (db.autoWRotate) {
+        db.wAngle += 0.012;
+      }
+
+      const p = db.dimProgress;
+      const t1 = Math.max(0, Math.min(1, p));       // 0D -> 1D extrusion along X
+      const t2 = Math.max(0, Math.min(1, p - 1));   // 1D -> 2D extrusion along Z
+      const t3 = Math.max(0, Math.min(1, p - 2));   // 2D -> 3D extrusion along Y
+      const t4 = Math.max(0, Math.min(1, p - 3));   // 3D -> 4D extrusion along W
+
+      const s = 0.88;
+
+      if (db.family === 'hypercube') {
+        // 16 vertices of a 4D hypercube (tesseract), each labeled by binary bits (b0, b1, b2, b3) in {0, 1}^4
+        // As t1, t2, t3, t4 grow from 0 to 1, each dimension smoothly unfolds from a single point!
+        const verts3D = [];
+        for (let i = 0; i < 16; i++) {
+          const b0 = (i & 1) ? 1 : -1;
+          const b1 = (i & 2) ? 1 : -1;
+          const b2 = (i & 4) ? 1 : -1;
+          const b3 = (i & 8) ? 1 : -1;
+
+          // Base coordinates before 4D rotation
+          let x = (b0 === -1 ? -s * t1 : s * t1);
+          let z = (b1 === -1 ? -s * t2 : s * t2);
+          let y = (b2 === -1 ? -s * t3 : s * t3);
+          let wCoord = (b3 === -1 ? -s * t4 : s * t4);
+
+          // When in 4D (t4 > 0.01), rotate in XW and ZW planes + stereographic/Schlegel-like 4D->3D projection
+          if (t4 > 0.001) {
+            const cosW = Math.cos(db.wAngle * t4), sinW = Math.sin(db.wAngle * t4);
+            const xRot = x * cosW - wCoord * sinW;
+            const wRot = x * sinW + wCoord * cosW;
+            const persp4D = 1.0 / (2.35 - wRot * 0.55);
+            x = xRot * persp4D * 1.85;
+            y = y * persp4D * 1.85;
+            z = z * persp4D * 1.85;
+          }
+
+          verts3D.push({ x, y, z, b0, b1, b2, b3 });
+        }
+
+        const proj = verts3D.map(v => project3D(v, w, h));
+
+        // Draw 2D square faces when t2 > 0.05
+        if (t2 > 0.05 && state.uiLayers.showFaces3D) {
+          const baseCubeFaces = [
+            [0, 1, 3, 2], [4, 5, 7, 6],
+            [0, 1, 5, 4], [2, 3, 7, 6],
+            [0, 2, 6, 4], [1, 3, 7, 5]
+          ];
+          const fColors = ['#38bdf8', '#34d399', '#f43f5e', '#fbbf24', '#818cf8', '#22d3ee'];
+          const maxFaces = t3 > 0.02 ? 6 : 1;
+          for (let fIdx = 0; fIdx < maxFaces; fIdx++) {
+            const f = baseCubeFaces[fIdx];
+            ctx.beginPath();
+            f.forEach((vIdx, k) => k === 0 ? ctx.moveTo(proj[vIdx].x, proj[vIdx].y) : ctx.lineTo(proj[vIdx].x, proj[vIdx].y));
+            ctx.closePath();
+            ctx.fillStyle = fColors[fIdx % fColors.length];
+            ctx.globalAlpha = fIdx === 0 ? 0.28 : 0.18 * t3;
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+          }
+          if (t4 > 0.05) {
+            for (let fIdx = 0; fIdx < 6; fIdx++) {
+              const f = baseCubeFaces[fIdx].map(idx => idx + 8);
+              ctx.beginPath();
+              f.forEach((vIdx, k) => k === 0 ? ctx.moveTo(proj[vIdx].x, proj[vIdx].y) : ctx.lineTo(proj[vIdx].x, proj[vIdx].y));
+              ctx.closePath();
+              ctx.fillStyle = '#c084fc';
+              ctx.globalAlpha = 0.14 * t4;
+              ctx.fill();
+              ctx.globalAlpha = 1.0;
+            }
+          }
+        }
+
+        // Draw 1D edges for each dimension step with distinct colors!
+        if (state.uiLayers.showEdges3D) {
+          for (let i = 0; i < 16; i++) {
+            for (let bit = 0; bit < 4; bit++) {
+              const j = i ^ (1 << bit);
+              if (i < j) {
+                if (bit === 0 && t1 < 0.01) continue;
+                if (bit === 1 && t2 < 0.01) continue;
+                if (bit === 2 && t3 < 0.01) continue;
+                if (bit === 3 && t4 < 0.01) continue;
+                // Only draw higher-bit copies when their parent dimension is active
+                if (i >= 2 && t2 < 0.01) continue;
+                if (i >= 4 && t3 < 0.01) continue;
+                if (i >= 8 && t4 < 0.01) continue;
+
+                const edgeColors = ['#38bdf8', '#34d399', '#fbbf24', '#c084fc'];
+                const lw = bit === 3 ? 2.4 : 3.2;
+                drawLine(proj[i], proj[j], edgeColors[bit], lw, bit === 3);
+              }
+            }
+          }
+        }
+
+        // Draw active 0D vertices
+        const activeVertCount = p < 0.05 ? 1 : (p < 1.05 ? 2 : (p < 2.05 ? 4 : (p < 3.05 ? 8 : 16)));
+        for (let i = 0; i < activeVertCount; i++) {
+          const col = i < 2 ? '#f43f5e' : (i < 4 ? '#34d399' : (i < 8 ? '#fbbf24' : '#c084fc'));
+          drawPointMarker(proj[i], col, activeVertCount <= 8 ? `V${i + 1}` : '', -10);
+        }
+
+        // Visual summary banner at top-left of canvas
+        const stIdx = Math.min(4, Math.round(p));
+        const counts = [
+          { name: '0D: Точка', v: 1, e: 0, f: 0, c: 0 },
+          { name: '1D: Отрезок (сдвиг точки)', v: 2, e: 1, f: 0, c: 0 },
+          { name: '2D: Квадрат (сдвиг отрезка)', v: 4, e: 4, f: 1, c: 0 },
+          { name: '3D: Куб (8 точек, 12 линий, 6 плоскостей!)', v: 8, e: 12, f: 6, c: 1 },
+          { name: '4D: Тессеракт (16 точек, 32 линии, 24 плоск., 8 кубов!)', v: 16, e: 32, f: 24, c: 8 }
+        ][stIdx];
+
+        updateMetrics({
+          'Семейство (2ⁿ)': counts.name,
+          '0D Точек (вершин)': `${counts.v} шт. (2^${stIdx})`,
+          '1D Линий (рёбер)': `${counts.e} шт.`,
+          '2D Плоскостей (граней)': `${counts.f} шт.${stIdx === 3 ? ' (у куба 6, не 4!)' : ''}`,
+          '3D Объёмов (ячеек)': `${counts.c} шт. ✨`
+        }, 'Мост Мерностей: Гиперкубы');
+      } else {
+        // SIMPLEX FAMILY: Point (1) -> Segment (2) -> Triangle (3) -> Tetrahedron (4) -> Pentachoron (5)
+        // Every new dimension adds exactly ONE new vertex outside the previous space and connects it to all existing vertices!
+        const v0 = { x: -s * t1, y: -0.55 * t3, z: -0.5 * t2 };
+        const v1 = { x: s * t1, y: -0.55 * t3, z: -0.5 * t2 };
+        const v2 = { x: 0, y: -0.55 * t3, z: s * 1.05 * t2 };
+        const v3 = { x: 0, y: s * 1.15 * t3, z: 0 };
+        // 5th vertex in 4D (placed at center of tetrahedron and rotated via wAngle!)
+        const v4 = {
+          x: 0.32 * Math.cos(db.wAngle) * t4,
+          y: 0.15 * Math.sin(db.wAngle * 0.8) * t4,
+          z: 0.32 * Math.sin(db.wAngle) * t4
+        };
+
+        const rawVerts = [v0, v1, v2, v3, v4];
+        const proj = rawVerts.map(v => project3D(v, w, h));
+
+        const nActive = p < 0.05 ? 1 : (p < 1.05 ? 2 : (p < 2.05 ? 3 : (p < 3.05 ? 4 : 5)));
+
+        // Draw 2D triangular faces
+        if (t2 > 0.05 && state.uiLayers.showFaces3D) {
+          const triFaces = [[0, 1, 2], [0, 1, 3], [1, 2, 3], [0, 2, 3]];
+          const tCols = ['#34d399', '#38bdf8', '#f43f5e', '#fbbf24'];
+          const maxF = t3 > 0.02 ? 4 : 1;
+          for (let fIdx = 0; fIdx < maxF; fIdx++) {
+            const [a, b, c] = triFaces[fIdx];
+            ctx.beginPath();
+            ctx.moveTo(proj[a].x, proj[a].y);
+            ctx.lineTo(proj[b].x, proj[b].y);
+            ctx.lineTo(proj[c].x, proj[c].y);
+            ctx.closePath();
+            ctx.fillStyle = tCols[fIdx];
+            ctx.globalAlpha = fIdx === 0 ? 0.32 : 0.24 * t3;
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+          }
+        }
+
+        // Draw all pairs of edges (complete graph K_n!)
+        if (state.uiLayers.showEdges3D) {
+          for (let i = 0; i < nActive; i++) {
+            for (let j = i + 1; j < nActive; j++) {
+              const col = j === 1 ? '#38bdf8' : (j === 2 ? '#34d399' : (j === 3 ? '#fbbf24' : '#c084fc'));
+              drawLine(proj[i], proj[j], col, j === 4 ? 2.5 : 3.5, j === 4);
+            }
+          }
+        }
+
+        // Draw vertices
+        for (let i = 0; i < nActive; i++) {
+          const vCols = ['#f43f5e', '#38bdf8', '#34d399', '#fbbf24', '#c084fc'];
+          const vNames = ['A (0D)', 'B (1D)', 'C (2D)', 'D (3D вершина)', 'E (4D вершина!)'];
+          drawPointMarker(proj[i], vCols[i], vNames[i], i === 3 ? -14 : 14);
+        }
+
+        const stIdx = Math.min(4, Math.round(p));
+        const sCounts = [
+          { name: '0D: Точка', v: 1, e: 0, f: 0, c: 0 },
+          { name: '1D: Отрезок (2 точки)', v: 2, e: 1, f: 0, c: 0 },
+          { name: '2D: Треугольник (3 точки, 3 линии)', v: 3, e: 3, f: 1, c: 0 },
+          { name: '3D: Тетраэдр (4 точки, 6 линий, 4 плоскости!)', v: 4, e: 6, f: 4, c: 1 },
+          { name: '4D: Пятиячейник (5 точек, 10 линий, 10 плоск., 5 тетраэдров!)', v: 5, e: 10, f: 10, c: 5 }
+        ][stIdx];
+
+        updateMetrics({
+          'Семейство Симплексов': sCounts.name,
+          '0D Точек (n + 1)': `${sCounts.v} шт.`,
+          '1D Линий (рёбер)': `${sCounts.e} шт.`,
+          '2D Плоскостей (граней)': `${sCounts.f} шт.${stIdx === 3 ? ' (4 плоскости = Тетраэдр!)' : ''}`,
+          '3D Объёмов (ячеек)': `${sCounts.c} шт. ✨`
+        }, 'Мост Мерностей: Симплексы');
+      }
+
+      if (state.domain === 'quests' && state.questId === 'quest_dimensions') {
+        const el = document.getElementById('quest-dim-status');
+        if (el) {
+          const ok = p >= 3.85;
+          el.innerText = ok
+            ? `🎉 ПОБЕДА! Ты построил мост от 0D-точки до 4D-${db.family === 'hypercube' ? 'Тессеракта (16 точек, 8 кубов)' : 'Пятиячейника (5 точек, 5 тетраэдров)'}!`
+            : `Сейчас: ${p.toFixed(1)}D (${db.family === 'hypercube' ? 'Семейство Куба' : 'Семейство Симплекса'}). Доведи ползунок до 4D!`;
+          el.className = 'quest-status' + (ok ? ' success' : '');
+        }
+      }
+    }
+
+    function renderAxiomsPerp3DScene() {
+      const st = state.stereoTheory;
+      const w = canvas.width, h = canvas.height;
+      const s = 1.45;
+
+      // Base horizontal plane alpha (at y = -0.35)
+      const yPlane = -0.35;
+      const alphaPts = [
+        { x: -s, y: yPlane, z: -s },
+        { x: s, y: yPlane, z: -s },
+        { x: s, y: yPlane, z: s },
+        { x: -s, y: yPlane, z: s }
+      ];
+
+      if (st.subMode === 'axioms') {
+        if (st.planeWay === '2planes_line') {
+          // Axiom III: Two planes alpha and beta intersecting along a common line l!
+          drawPlanePatch3D(alphaPts, '#38bdf8', 0.25, '#38bdf8', w, h);
+          const betaPts = [
+            { x: -s * 0.8, y: yPlane - 0.9, z: -s },
+            { x: s * 0.8, y: yPlane + 1.1, z: -s },
+            { x: s * 0.8, y: yPlane + 1.1, z: s },
+            { x: -s * 0.8, y: yPlane - 0.9, z: s }
+          ];
+          drawPlanePatch3D(betaPts, '#f43f5e', 0.25, '#f43f5e', w, h);
+
+          const L1 = project3D({ x: -0.1, y: yPlane, z: -s * 1.15 }, w, h);
+          const L2 = project3D({ x: -0.1, y: yPlane, z: s * 1.15 }, w, h);
+          drawLine(L1, L2, '#fbbf24', 4.5);
+          drawSegmentLabel(L1, L2, 'Общая прямая пересечения l = α ∩ β (Аксиома III)', '#fde68a', -18);
+
+          updateMetrics({
+            'Аксиома III (A₃)': 'α ∩ β = прямая l ✨',
+            'Общие точки плоскостей': 'Все лежат на прямой l',
+            'Образ в жизни': 'Сгиб раскрытой книги / угол комнаты',
+            'Применение': 'Построение сечений многогранников'
+          }, 'Аксиома III: Две плоскости');
+        } else {
+          const pAlpha = drawPlanePatch3D(alphaPts, '#38bdf8', 0.24, '#38bdf8', w, h);
+          if (state.uiLayers.showLabels) {
+            ctx.fillStyle = '#7dd3fc';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('Плоскость α (единственная!)', pAlpha[0].x + 25, pAlpha[0].y - 10);
+          }
+
+          const A = project3D({ x: -0.8, y: yPlane, z: 0.6 }, w, h);
+          const B = project3D({ x: 0.85, y: yPlane, z: 0.3 }, w, h);
+          const C = project3D({ x: -0.1, y: yPlane, z: -0.85 }, w, h);
+
+          if (st.planeWay === '3points') {
+            // Axiom I & II: 3 non-collinear points A, B, C + line AB lying completely in alpha
+            drawLine(A, B, '#fbbf24', 3.5);
+            drawLine(B, C, 'rgba(255,255,255,0.4)', 2, true);
+            drawLine(A, C, 'rgba(255,255,255,0.4)', 2, true);
+            drawSegmentLabel(A, B, 'Аксиома II: A ∈ α, B ∈ α ➔ прямая AB ⊂ α', '#fde68a', 18);
+            drawPointMarker(A, '#f43f5e', 'Точка A ∈ α', 14);
+            drawPointMarker(B, '#34d399', 'Точка B ∈ α', 14);
+            drawPointMarker(C, '#fbbf24', 'Точка C ∈ α (Аксиома I: 3 точки)', -14);
+          } else if (st.planeWay === 'line_point') {
+            const L1 = project3D({ x: -1.1, y: yPlane, z: 0.5 }, w, h);
+            const L2 = project3D({ x: 1.1, y: yPlane, z: 0.2 }, w, h);
+            drawLine(L1, L2, '#34d399', 4);
+            drawSegmentLabel(L1, L2, 'Прямая a ⊂ α', '#6ee7b7', 16);
+            drawPointMarker(C, '#fbbf24', 'Точка M ∉ a (задаёт плоскость α вместе с a!)', -14);
+          } else if (st.planeWay === '2intersect') {
+            const O = project3D({ x: 0, y: yPlane, z: 0 }, w, h);
+            drawLine(project3D({ x: -1.1, y: yPlane, z: -0.7 }, w, h), project3D({ x: 1.1, y: yPlane, z: 0.7 }, w, h), '#f43f5e', 3.8);
+            drawLine(project3D({ x: -1.1, y: yPlane, z: 0.7 }, w, h), project3D({ x: 1.1, y: yPlane, z: -0.7 }, w, h), '#fbbf24', 3.8);
+            drawPointMarker(O, '#fff', 'Точка пересечения a ∩ b = O', -16);
+          } else {
+            const A1 = project3D({ x: -1.1, y: yPlane, z: -0.45 }, w, h);
+            const A2 = project3D({ x: 1.1, y: yPlane, z: -0.45 }, w, h);
+            const B1 = project3D({ x: -1.1, y: yPlane, z: 0.55 }, w, h);
+            const B2 = project3D({ x: 1.1, y: yPlane, z: 0.55 }, w, h);
+            drawLine(A1, A2, '#34d399', 3.8);
+            drawLine(B1, B2, '#34d399', 3.8);
+            drawSegmentLabel(A1, A2, 'Прямая a', '#6ee7b7', -14);
+            drawSegmentLabel(B1, B2, 'Прямая b (b ∥ a ➔ задают плоскость α!)', '#6ee7b7', 16);
+          }
+
+          updateMetrics({
+            'Аксиома I (A₁)': '3 точки вне одной прямой ➔ 1 плоскость',
+            'Аксиома II (A₂)': '2 точки прямой в α ➔ вся прямая в α',
+            'Способ задания α': st.planeWay === '3points' ? 'Три точки A, B, C' : (st.planeWay === 'line_point' ? 'Прямая a и точка M' : (st.planeWay === '2intersect' ? 'Пересекающиеся a ∩ b' : 'Параллельные a ∥ b')),
+            'Жёсткость в 3D': 'Единственная плоскость ✨'
+          }, 'Аксиомы Стереометрии');
+        }
+      } else if (st.subMode === 'parallel') {
+        // Two parallel planes alpha (bottom) and beta (top) with pairs of intersecting parallel lines a1||a2 and b1||b2!
+        const y1 = -0.75, y2 = 0.65;
+        drawPlanePatch3D([
+          { x: -s, y: y1, z: -s }, { x: s, y: y1, z: -s }, { x: s, y: y1, z: s }, { x: -s, y: y1, z: s }
+        ], '#38bdf8', 0.22, '#38bdf8', w, h);
+
+        drawPlanePatch3D([
+          { x: -s, y: y2, z: -s }, { x: s, y: y2, z: -s }, { x: s, y: y2, z: s }, { x: -s, y: y2, z: s }
+        ], '#34d399', 0.22, '#34d399', w, h);
+
+        // Intersecting lines in bottom plane alpha
+        drawLine(project3D({ x: -1.1, y: y1, z: -0.5 }, w, h), project3D({ x: 1.1, y: y1, z: 0.5 }, w, h), '#f43f5e', 3.5);
+        drawLine(project3D({ x: -1.0, y: y1, z: 0.7 }, w, h), project3D({ x: 1.0, y: y1, z: -0.7 }, w, h), '#fbbf24', 3.5);
+        drawPointMarker(project3D({ x: 0, y: y1, z: 0 }, w, h), '#fff', 'Плоскость α: a₁ ∩ b₁', 14);
+
+        // Parallel intersecting lines in top plane beta
+        drawLine(project3D({ x: -1.1, y: y2, z: -0.5 }, w, h), project3D({ x: 1.1, y: y2, z: 0.5 }, w, h), '#f43f5e', 3.5);
+        drawLine(project3D({ x: -1.0, y: y2, z: 0.7 }, w, h), project3D({ x: 1.0, y: y2, z: -0.7 }, w, h), '#fbbf24', 3.5);
+        drawPointMarker(project3D({ x: 0, y: y2, z: 0 }, w, h), '#fff', 'Плоскость β ∥ α: a₂ ∥ a₁, b₂ ∥ b₁', -14);
+
+        updateMetrics({
+          'Прямая ∥ плоскости': 'a ∥ b (где b ⊂ α) ➔ a ∥ α',
+          'Плоскость ∥ плоскости': 'a₁∥a₂ и b₁∥b₂ (a₁∩b₁) ➔ α ∥ β',
+          'Свойство секущей γ': 'Пересекает α и β по ∥ прямым!',
+          'Отрезки ∥ прямых между α и β': 'Всегда равны ✨'
+        }, 'Параллельность в 3D');
+      } else if (st.subMode === 'skew_lines') {
+        // 2.4 Skew lines theorem: line b in plane alpha, line a pierces plane alpha at point M not on b!
+        drawPlanePatch3D(alphaPts, '#38bdf8', 0.22, '#38bdf8', w, h);
+
+        const B1 = project3D({ x: -1.15, y: yPlane, z: 0.55 }, w, h);
+        const B2 = project3D({ x: 1.15, y: yPlane, z: 0.55 }, w, h);
+        drawLine(B1, B2, '#38bdf8', 4);
+        drawSegmentLabel(B1, B2, 'Прямая b ⊂ α (лежит в плоскости)', '#7dd3fc', 16);
+
+        // Line a piercing plane alpha at M(0.2, yPlane, -0.35)
+        const M3 = { x: 0.2, y: yPlane, z: -0.35 };
+        const A_top = project3D({ x: -0.5, y: 1.15, z: -0.8 }, w, h);
+        const A_mid = project3D(M3, w, h);
+        const A_bot = project3D({ x: 0.75, y: -1.25, z: 0.0 }, w, h);
+
+        drawLine(A_top, A_mid, '#f43f5e', 4);
+        drawLine(A_mid, A_bot, 'rgba(244, 63, 94, 0.5)', 3, true);
+        drawSegmentLabel(A_top, A_mid, 'Скрещивающаяся прямая a (a ∩ α = M)', '#fda4af', -18);
+        drawPointMarker(A_mid, '#fbbf24', 'Точка прокола M ∉ b ➔ a и b скрещиваются!', -14);
+
+        updateMetrics({
+          'Условие 1': 'Прямая b лежит в плоскости α (b ⊂ α)',
+          'Условие 2': 'Прямая a пересекает α в точке M',
+          'Условие 3 (Главное!)': 'Точка M НЕ лежит на прямой b (M ∉ b)',
+          'Вывод (Признак)': 'a и b — СКРЕЩИВАЮЩИЕСЯ! ✨'
+        }, '2.4 Скрещивающиеся Прямые');
+      } else if (st.subMode === 'perp') {
+        // 3.1 Line perpendicular to plane (l perp a and l perp b at O) + 3.3 Perpendicular planes
+        drawPlanePatch3D(alphaPts, '#38bdf8', 0.22, '#38bdf8', w, h);
+
+        // Vertical plane beta passing through normal l
+        const betaVert = [
+          { x: -0.95, y: yPlane, z: 0 },
+          { x: 0.95, y: yPlane, z: 0 },
+          { x: 0.95, y: 1.1, z: 0 },
+          { x: -0.95, y: 1.1, z: 0 }
+        ];
+        drawPlanePatch3D(betaVert, '#c084fc', 0.18, 'rgba(192, 132, 252, 0.6)', w, h);
+
+        const O = project3D({ x: 0, y: yPlane, z: 0 }, w, h);
+        const TopL = project3D({ x: 0, y: 1.25, z: 0 }, w, h);
+        const A1 = project3D({ x: -1.1, y: yPlane, z: -0.6 }, w, h);
+        const A2 = project3D({ x: 1.1, y: yPlane, z: 0.6 }, w, h);
+        const B1 = project3D({ x: -1.0, y: yPlane, z: 0.7 }, w, h);
+        const B2 = project3D({ x: 1.0, y: yPlane, z: -0.7 }, w, h);
+
+        drawLine(A1, A2, '#34d399', 3);
+        drawLine(B1, B2, '#fbbf24', 3);
+        drawLine(O, TopL, '#f43f5e', 4.5);
+
+        drawRightAngleSquare(O, TopL, A2, 14, '#34d399');
+        drawRightAngleSquare(O, TopL, B2, 14, '#fbbf24');
+
+        drawSegmentLabel(O, TopL, 'Перпендикуляр l ⊥ α (и l ⊂ β ➔ β ⊥ α)', '#fda4af', -18);
+        drawPointMarker(O, '#fff', 'O (l ⊥ a и l ⊥ b ➔ l ⊥ α!)', 16);
+
+        updateMetrics({
+          'Признак l ⊥ α': 'l ⊥ a и l ⊥ b (где a ∩ b в α)',
+          'Свойство l ⊥ α': 'l перпендикулярна ЛЮБОЙ прямой в α!',
+          'Признак β ⊥ α': 'Плоскость β проходит через l ⊥ α',
+          'Угол между α и β': 'Строго 90° 📐'
+        }, '3.1–3.3 Перпендикулярность');
+      } else if (st.subMode === 'ttp') {
+        // 3.4 Theorem of Three Perpendiculars (TTP) interactive 3D!
+        drawPlanePatch3D(alphaPts, '#38bdf8', 0.22, '#38bdf8', w, h);
+
+        const H3 = { x: -0.55, y: yPlane, z: -0.35 };
+        const A3 = { x: -0.55, y: 1.15, z: -0.35 }; // Perpendicular AH to plane alpha
+        const M3 = { x: 0.45, y: yPlane, z: 0.25 };  // Foot of oblique AM
+
+        const H = project3D(H3, w, h);
+        const A = project3D(A3, w, h);
+        const M = project3D(M3, w, h);
+
+        // Direction of projection HM in XZ plane
+        const dxHM = M3.x - H3.x, dzHM = M3.z - H3.z;
+        const baseAng = Math.atan2(dzHM, dxHM);
+        const rotRad = (st.ttpAngleDeg * Math.PI) / 180;
+        const lineAng = baseAng + rotRad;
+
+        const L_p1 = project3D({ x: M3.x - 0.95 * Math.cos(lineAng), y: yPlane, z: M3.z - 0.95 * Math.sin(lineAng) }, w, h);
+        const L_p2 = project3D({ x: M3.x + 0.95 * Math.cos(lineAng), y: yPlane, z: M3.z + 0.95 * Math.sin(lineAng) }, w, h);
+
+        // 1. Perpendicular AH (Red)
+        drawLine(A, H, '#f43f5e', 4);
+        drawRightAngleSquare(H, A, M, 13, '#f43f5e');
+        // 2. Projection HM (Emerald)
+        drawLine(H, M, '#34d399', 4);
+        // 3. Oblique AM (Blue)
+        drawLine(A, M, '#38bdf8', 4);
+        // 4. Line a in plane alpha through M (Amber)
+        drawLine(L_p1, L_p2, '#fbbf24', 3.8);
+
+        const is90 = Math.abs(st.ttpAngleDeg - 90) < 2;
+        if (is90) {
+          drawRightAngleSquare(M, H, L_p2, 15, '#34d399');
+          drawRightAngleSquare(M, A, L_p2, 15, '#38bdf8');
+        }
+
+        drawSegmentLabel(A, H, '1) Перпендикуляр AH ⊥ α', '#fda4af', -18);
+        drawSegmentLabel(H, M, '2) Проекция HM', '#6ee7b7', 16);
+        drawSegmentLabel(A, M, '3) Наклонная AM', '#7dd3fc', -18);
+        drawSegmentLabel(M, L_p2, `Прямая a ⊂ α (${st.ttpAngleDeg}°)`, '#fde68a', 16);
+
+        drawPointMarker(A, '#f43f5e', 'A (вершина)', -12);
+        drawPointMarker(H, '#34d399', 'H (основание перпендикуляра)', 14);
+        drawPointMarker(M, '#fbbf24', is90 ? 'M (90° с проекцией ⟺ 90° с наклонной!)' : 'M (основание наклонной)', 14);
+
+        updateMetrics({
+          '1. Перпендикуляр к α': 'AH ⊥ α (90°)',
+          '2. Наклонная и Проекция': 'AM (наклонная), HM (проекция)',
+          'Угол (a, проекция HM)': `${st.ttpAngleDeg}°`,
+          'По ТТП угол (a, наклонная AM)': is90 ? 'Строго 90° (Перпендикулярны!) ✨' : 'Не равен 90°'
+        }, '3.4 Теорема о Трёх Перпендикулярах');
+      } else {
+        // 3.2 Classic EGE Plot: Regular Pyramid (SA perp BC) OR Cube Diagonal (B1D perp AC)
+        if (st.egeShape === 'pyramid') {
+          const A3 = { x: -1.1, y: -0.65, z: 0.7 };
+          const B3 = { x: 1.0, y: -0.65, z: 0.85 };
+          const C3 = { x: 0.35, y: -0.65, z: -1.05 };
+          const S3 = { x: 0.08, y: 1.2, z: 0.16 };
+          const O3 = { x: 0.08, y: -0.65, z: 0.16 };
+          const M3 = { x: (B3.x + C3.x) / 2, y: -0.65, z: (B3.z + C3.z) / 2 };
+
+          drawPlanePatch3D([A3, B3, C3], '#38bdf8', 0.2, 'rgba(255,255,255,0.5)', w, h);
+          const pA = project3D(A3, w, h), pB = project3D(B3, w, h), pC = project3D(C3, w, h);
+          const pS = project3D(S3, w, h), pO = project3D(O3, w, h), pM = project3D(M3, w, h);
+
+          drawLine(pS, pB, 'rgba(255,255,255,0.45)', 2);
+          drawLine(pS, pC, 'rgba(255,255,255,0.45)', 2);
+
+          // Highlight Height SO, Projection AM (median/altitude of base), Oblique SA, and opposite edge BC!
+          drawLine(pS, pO, '#f43f5e', 3.5, true);
+          drawLine(pA, pM, '#34d399', 3.5);
+          drawLine(pS, pM, 'rgba(52, 211, 153, 0.5)', 2, true);
+          drawLine(pS, pA, '#38bdf8', 4.5);
+          drawLine(pB, pC, '#fbbf24', 4.5);
+
+          drawRightAngleSquare(pO, pS, pM, 12, '#f43f5e');
+          drawRightAngleSquare(pM, pA, pB, 14, '#34d399');
+          drawRightAngleSquare(pM, pS, pB, 14, '#fbbf24');
+
+          drawSegmentLabel(pS, pA, 'Боковое ребро SA (наклонная)', '#7dd3fc', -18);
+          drawSegmentLabel(pA, pM, 'Проекция AM ⊥ BC', '#6ee7b7', 16);
+          drawSegmentLabel(pB, pC, 'Скрещивающееся ребро BC (BC ⊥ SA, 90°!)', '#fde68a', 18);
+
+          drawPointMarker(pS, '#fff', 'Вершина S', -12);
+          drawPointMarker(pO, '#f43f5e', 'O (высота SO)', 14);
+          drawPointMarker(pM, '#fbbf24', 'M (середина BC: AM ⊥ BC ➔ SA ⊥ BC!)', 14);
+
+          updateMetrics({
+            'Сюжет ЕГЭ №1': 'Правильная пирамида SABC',
+            'Проекция SA на дно': 'Медиана и высота AM ⊥ BC',
+            'Следствие по ТТП': 'Скрещивающиеся SA ⊥ BC (90°!) ✨',
+            'Также перпендикулярны': 'BC ⊥ всей плоскости (SAM)!'
+          }, '3.2 Сюжет ЕГЭ: Пирамида');
+        } else {
+          // Cube B1D perp AC
+          const sc = 0.95;
+          const V = [
+            { x: -sc, y: -sc, z: sc },  // 0: A
+            { x: sc, y: -sc, z: sc },   // 1: B
+            { x: sc, y: -sc, z: -sc },  // 2: C
+            { x: -sc, y: -sc, z: -sc }, // 3: D
+            { x: -sc, y: sc, z: sc },   // 4: A1
+            { x: sc, y: sc, z: sc },    // 5: B1
+            { x: sc, y: sc, z: -sc },   // 6: C1
+            { x: -sc, y: sc, z: -sc }   // 7: D1
+          ];
+          const pV = V.map(v => project3D(v, w, h));
+          const edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+          edges.forEach(([i, j]) => drawLine(pV[i], pV[j], 'rgba(255,255,255,0.3)', 1.6));
+
+          // Triangle AB1C (plane perpendicular to B1D!)
+          drawPlanePatch3D([V[0], V[5], V[2]], '#34d399', 0.22, '#34d399', w, h);
+
+          // Projection BD on bottom face, AC on bottom face, and main diagonal B1D!
+          drawLine(pV[1], pV[3], '#38bdf8', 3, true); // BD
+          drawLine(pV[0], pV[2], '#fbbf24', 4);       // AC
+          drawLine(pV[5], pV[3], '#f43f5e', 4.5);     // B1D
+
+          const centerBot = project3D({ x: 0, y: -sc, z: 0 }, w, h);
+          drawRightAngleSquare(centerBot, pV[1], pV[2], 13, '#34d399');
+
+          drawSegmentLabel(pV[5], pV[3], 'Диагональ куба B₁D ⊥ (AB₁C)', '#fda4af', -18);
+          drawSegmentLabel(pV[0], pV[2], 'Диагональ дна AC ⊥ BD ➔ AC ⊥ B₁D!', '#fde68a', 18);
+
+          drawPointMarker(pV[0], '#fff', 'A', 12);
+          drawPointMarker(pV[1], '#fff', 'B', 12);
+          drawPointMarker(pV[2], '#fff', 'C', 12);
+          drawPointMarker(pV[3], '#fff', 'D', -12);
+          drawPointMarker(pV[5], '#f43f5e', 'B₁', -12);
+
+          updateMetrics({
+            'Сюжет ЕГЭ №2': 'Диагональ куба B₁D и плоскость (AB₁C)',
+            'Проекция B₁D на дно': 'Диагональ квадрата BD ⊥ AC',
+            'По ТТП': 'B₁D ⊥ AC, B₁D ⊥ AB₁, B₁D ⊥ B₁C',
+            'Супер-факт для ЕГЭ': 'B₁D ⊥ плоскости (AB₁C) под 90°! ✨'
+          }, '3.2 Сюжет ЕГЭ: Куб');
+        }
+      }
+    }
+
+    function renderDistancesAngles3DScene() {
+      const da = state.stereoDistAng;
+      const w = canvas.width, h = canvas.height;
+      const s = 1.45;
+      const yPlane = -0.5;
+      const alphaPts = [
+        { x: -s, y: yPlane, z: -s },
+        { x: s, y: yPlane, z: -s },
+        { x: s, y: yPlane, z: s },
+        { x: -s, y: yPlane, z: s }
+      ];
+
+      if (da.subMode === 'point_plane') {
+        drawPlanePatch3D(alphaPts, '#38bdf8', 0.22, '#38bdf8', w, h);
+        const H3 = { x: 0, y: yPlane, z: 0 };
+        const A3 = { x: 0, y: yPlane + da.heightH, z: 0 };
+        const M3 = { x: 0.9, y: yPlane, z: 0.55 };
+
+        const pH = project3D(H3, w, h);
+        const pA = project3D(A3, w, h);
+        const pM = project3D(M3, w, h);
+
+        drawLine(pA, pM, 'rgba(255,255,255,0.45)', 2.5, true);
+        drawLine(pH, pM, 'rgba(56,189,248,0.5)', 2, true);
+        drawLine(pA, pH, '#f43f5e', 4.5);
+        drawRightAngleSquare(pH, pA, pM, 14, '#f43f5e');
+
+        drawSegmentLabel(pA, pH, `Расстояние d = AH = ${da.heightH.toFixed(2)} (перпендикуляр!)`, '#fda4af', -18);
+        drawSegmentLabel(pA, pM, `Наклонная AM = ${Math.hypot(da.heightH, 1.05).toFixed(2)} > d`, '#cbd5e1', 16);
+
+        drawPointMarker(pA, '#fbbf24', 'Точка A', -14);
+        drawPointMarker(pH, '#f43f5e', 'H (проекция A на α, 90°)', 14);
+
+        updateMetrics({
+          'Расстояние ρ(A, α)': `Перпендикуляр AH = ${da.heightH.toFixed(2)}`,
+          'Сравнение с наклонной': 'Перпендикуляр всегда короче наклонной!',
+          'Метод объёмов (ЕГЭ)': 'd = 3V / S_основания ✨',
+          'Между ∥ плоскостями': 'Равно длине общего перпендикуляра'
+        }, '4.1–4.2 Расстояние до Плоскости');
+      } else if (da.subMode === 'skew_dist') {
+        // 4.3 Distance between skew lines in a cube (e.g., edge AA1 and diagonal B1D1 or BC)
+        const sc = 0.95;
+        const V = [
+          { x: -sc, y: -sc, z: sc },  { x: sc, y: -sc, z: sc },
+          { x: sc, y: -sc, z: -sc }, { x: -sc, y: -sc, z: -sc },
+          { x: -sc, y: sc, z: sc },   { x: sc, y: sc, z: sc },
+          { x: sc, y: sc, z: -sc },  { x: -sc, y: sc, z: -sc }
+        ];
+        const pV = V.map(v => project3D(v, w, h));
+        const edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+        edges.forEach(([i, j]) => drawLine(pV[i], pV[j], 'rgba(255,255,255,0.28)', 1.5));
+
+        // Skew lines: vertical edge AA1 (V[0]-V[4]) and bottom-right edge BC (V[1]-V[2])
+        drawLine(pV[0], pV[4], '#f43f5e', 4.5);
+        drawLine(pV[1], pV[2], '#38bdf8', 4.5);
+        // Common perpendicular AB (V[0]-V[1]): AB perp AA1 and AB perp BC!
+        drawLine(pV[0], pV[1], '#34d399', 4.5);
+        drawRightAngleSquare(pV[0], pV[4], pV[1], 14, '#34d399');
+        drawRightAngleSquare(pV[1], pV[0], pV[2], 14, '#34d399');
+
+        drawSegmentLabel(pV[0], pV[4], 'Прямая a (ребро AA₁)', '#fda4af', -18);
+        drawSegmentLabel(pV[1], pV[2], 'Прямая b (ребро BC)', '#7dd3fc', 18);
+        drawSegmentLabel(pV[0], pV[1], 'Общий перпендикуляр AB (AB ⊥ a и AB ⊥ b!)', '#6ee7b7', 18);
+
+        updateMetrics({
+          'Скрещивающиеся прямые': 'AA₁ и BC в кубе',
+          'Общий перпендикуляр': 'Ребро AB (AB ⊥ AA₁ и AB ⊥ BC)',
+          'Способ 2 (ЕГЭ)': 'Расстояние от a до ∥ плоскости (BCC₁)',
+          'Способ 3 (Проекция)': 'Проекция на ⊥ плоскость (ABCD) ✨'
+        }, '4.3 Расстояние Скрещивающихся');
+      } else if (da.subMode === 'skew_angle') {
+        // 5.1 Angle between skew lines via parallel translation slider!
+        drawPlanePatch3D(alphaPts, '#38bdf8', 0.18, '#38bdf8', w, h);
+
+        // Line b in bottom plane alpha
+        const B1 = project3D({ x: -1.1, y: yPlane, z: 0.4 }, w, h);
+        const B2 = project3D({ x: 1.1, y: yPlane, z: -0.4 }, w, h);
+        drawLine(B1, B2, '#38bdf8', 4);
+        drawSegmentLabel(B1, B2, 'Прямая b ⊂ α', '#7dd3fc', 16);
+
+        // Original skew line a floating above plane at y = +0.75
+        const yHigh = 0.75;
+        const A1_orig = project3D({ x: -1.0, y: yHigh, z: -0.6 }, w, h);
+        const A2_orig = project3D({ x: 1.0, y: yHigh, z: 0.6 }, w, h);
+        drawLine(A1_orig, A2_orig, 'rgba(244, 63, 94, 0.45)', 3, true);
+        drawSegmentLabel(A1_orig, A2_orig, 'Исходная прямая a (вверху)', '#fda4af', -16);
+
+        // Translated line a' sliding down to plane alpha (t from 0 to 1)
+        const t = da.shiftSkewT;
+        const yCur = yHigh * (1 - t) + yPlane * t;
+        const A1_cur = project3D({ x: -1.0, y: yCur, z: -0.6 }, w, h);
+        const A2_cur = project3D({ x: 1.0, y: yCur, z: 0.6 }, w, h);
+        const O_cur = project3D({ x: 0, y: yCur, z: 0 }, w, h);
+
+        drawLine(A1_cur, A2_cur, '#f43f5e', 4);
+        drawSegmentLabel(A1_cur, A2_cur, t > 0.95 ? "Перенесённая прямая a' ∥ a (пересекла b!)" : "Параллельный перенос a' ∥ a...", '#f43f5e', -18);
+
+        if (t > 0.9) {
+          drawAngleArc(O_cur, A2_cur, B2, 38, '#34d399', 'φ = 52°');
+          drawPointMarker(O_cur, '#fff', 'Точка встречи O: угол φ ∈ (0°; 90°]!', 16);
+        }
+
+        updateMetrics({
+          'Шаг 1': 'Переносим a параллельно самой себе (a′ ∥ a)',
+          'Шаг 2': 'Совмещаем в одну точку O с прямой b',
+          'Шаг 3 (Важно!)': 'Берём ОСТРЫЙ (или 90°) угол φ ∈ (0°; 90°]',
+          'Если cos φ < 0': 'Берём модуль |cos φ| (острый угол!) ✨'
+        }, '5.1 Угол Скрещивающихся Прямых');
+      } else if (da.subMode === 'line_plane_ang') {
+        // 5.2 Angle between line and plane = angle between oblique AM and its projection HM!
+        drawPlanePatch3D(alphaPts, '#38bdf8', 0.22, '#38bdf8', w, h);
+
+        const phiRad = (da.inclineDeg * Math.PI) / 180;
+        const L_oblique = 1.65;
+        const projLen = L_oblique * Math.cos(phiRad);
+        const perpH = L_oblique * Math.sin(phiRad);
+
+        const M3 = { x: -0.7, y: yPlane, z: 0.25 };
+        const H3 = { x: M3.x + projLen, y: yPlane, z: M3.z - 0.25 };
+        const A3 = { x: H3.x, y: yPlane + perpH, z: H3.z };
+
+        const pM = project3D(M3, w, h);
+        const pH = project3D(H3, w, h);
+        const pA = project3D(A3, w, h);
+
+        drawLine(pA, pH, '#f43f5e', 3.8, true);
+        drawLine(pM, pH, '#34d399', 4);
+        drawLine(pM, pA, '#fbbf24', 4.5);
+        drawRightAngleSquare(pH, pA, pM, 14, '#f43f5e');
+        drawAngleArc(pM, pH, pA, 44, '#fbbf24', `φ = ${da.inclineDeg}°`);
+
+        drawSegmentLabel(pM, pA, 'Наклонная прямая AM', '#fde68a', -18);
+        drawSegmentLabel(pM, pH, 'Ортогональная проекция HM на α', '#6ee7b7', 18);
+        drawSegmentLabel(pA, pH, `Перпендикуляр AH`, '#fda4af', 16);
+
+        drawPointMarker(pM, '#fff', 'Точка прокола M', 14);
+        drawPointMarker(pH, '#34d399', 'H (90°)', 14);
+        drawPointMarker(pA, '#fbbf24', 'A', -12);
+
+        updateMetrics({
+          'Угол (AM, α)': `Равен углу ∠AMH = ${da.inclineDeg}°`,
+          'Формула синуса': `sin φ = AH / AM = ${Math.sin(phiRad).toFixed(3)}`,
+          'Проекция HM': `AM · cos φ = ${projLen.toFixed(2)}`,
+          'Перпендикуляр AH': `AM · sin φ = ${perpH.toFixed(2)} ✨`
+        }, '5.2 Угол Прямой и Плоскости');
+      } else if (da.subMode === 'dihedral_ang') {
+        // 5.3 Dihedral angle between two planes alpha and beta (Linear angle AOB perp edge l)
+        drawPlanePatch3D(alphaPts, '#38bdf8', 0.24, '#38bdf8', w, h);
+
+        const phiRad = (da.inclineDeg * Math.PI) / 180;
+        const wFlap = 1.55;
+        const xEdge = -0.65;
+        const betaPts = [
+          { x: xEdge, y: yPlane, z: -s },
+          { x: xEdge + wFlap * Math.cos(phiRad), y: yPlane + wFlap * Math.sin(phiRad), z: -s },
+          { x: xEdge + wFlap * Math.cos(phiRad), y: yPlane + wFlap * Math.sin(phiRad), z: s },
+          { x: xEdge, y: yPlane, z: s }
+        ];
+        drawPlanePatch3D(betaPts, '#c084fc', 0.28, '#c084fc', w, h);
+
+        // Common edge l
+        const E1 = project3D({ x: xEdge, y: yPlane, z: -s * 1.1 }, w, h);
+        const E2 = project3D({ x: xEdge, y: yPlane, z: s * 1.1 }, w, h);
+        drawLine(E1, E2, '#fbbf24', 4.5);
+        drawSegmentLabel(E1, E2, 'Общее ребро пересечения l = α ∩ β', '#fde68a', -18);
+
+        // Linear angle rays OA perp l in alpha, OB perp l in beta!
+        const O3 = { x: xEdge, y: yPlane, z: 0.1 };
+        const A3 = { x: xEdge + 1.15, y: yPlane, z: 0.1 };
+        const B3 = { x: xEdge + 1.15 * Math.cos(phiRad), y: yPlane + 1.15 * Math.sin(phiRad), z: 0.1 };
+
+        const pO = project3D(O3, w, h);
+        const pA = project3D(A3, w, h);
+        const pB = project3D(B3, w, h);
+
+        drawLine(pO, pA, '#38bdf8', 4);
+        drawLine(pO, pB, '#f43f5e', 4);
+        drawRightAngleSquare(pO, E2, pA, 12, '#38bdf8');
+        drawRightAngleSquare(pO, E2, pB, 12, '#f43f5e');
+        drawAngleArc(pO, pA, pB, 42, '#34d399', `φ = ${da.inclineDeg}°`);
+
+        drawSegmentLabel(pO, pA, 'Луч OA ⊥ l (в α)', '#7dd3fc', 16);
+        drawSegmentLabel(pO, pB, 'Луч OB ⊥ l (в β)', '#fda4af', -16);
+        drawPointMarker(pO, '#fff', 'Вершина линейного угла O ∈ l', 16);
+
+        updateMetrics({
+          'Общее ребро плоскостей': 'Прямая l = α ∩ β',
+          'Как строить угол φ': 'Два перпендикуляра OA ⊥ l и OB ⊥ l!',
+          'Линейный угол ∠AOB': `φ = ${da.inclineDeg}°`,
+          'Через нормали плоскостей': 'cos φ = |n₁ · n₂| / (|n₁||n₂|) ✨'
+        }, '5.3 Угол Между Плоскостями');
+      } else {
+        // 5.4 Area of Orthogonal Projection: S_proj = S_fig * cos(phi)!
+        drawPlanePatch3D(alphaPts, '#38bdf8', 0.2, '#38bdf8', w, h);
+
+        const phiRad = (da.inclineDeg * Math.PI) / 180;
+        const cosPhi = Math.cos(phiRad);
+        const sOrig = 100.0;
+        const sProj = sOrig * cosPhi;
+
+        // Triangle with base AB on plane alpha (along Z) and apex C tilted at angle phi!
+        const A3 = { x: -0.75, y: yPlane, z: 0.85 };
+        const B3 = { x: -0.75, y: yPlane, z: -0.85 };
+        const lenH = 1.65;
+        const C3_fig = { x: -0.75 + lenH * cosPhi, y: yPlane + lenH * Math.sin(phiRad), z: 0 };
+        const C3_proj = { x: -0.75 + lenH * cosPhi, y: yPlane, z: 0 };
+
+        // Draw Shadow/Projection Triangle A-B-C_proj on plane alpha (Emerald)
+        drawPlanePatch3D([A3, B3, C3_proj], '#34d399', 0.42, '#34d399', w, h);
+
+        // Draw Tilted Polygon/Triangle A-B-C_fig in 3D space (Rose/Amber)
+        drawPlanePatch3D([A3, B3, C3_fig], '#f43f5e', 0.45, '#fbbf24', w, h);
+
+        const pA = project3D(A3, w, h), pB = project3D(B3, w, h);
+        const pC_fig = project3D(C3_fig, w, h), pC_proj = project3D(C3_proj, w, h);
+        const pMidAB = project3D({ x: -0.75, y: yPlane, z: 0 }, w, h);
+
+        // Vertical projection ray C_fig -> C_proj
+        drawLine(pC_fig, pC_proj, '#fbbf24', 3, true);
+        drawRightAngleSquare(pC_proj, pC_fig, pMidAB, 13, '#34d399');
+
+        // Altitudes of figure and projection showing h_proj = h * cos(phi)
+        drawLine(pMidAB, pC_fig, '#f43f5e', 3.5);
+        drawLine(pMidAB, pC_proj, '#34d399', 3.5);
+        if (da.inclineDeg > 5) {
+          drawAngleArc(pMidAB, pC_proj, pC_fig, 38, '#fbbf24', `φ = ${da.inclineDeg}°`);
+        }
+
+        drawSegmentLabel(pMidAB, pC_fig, `Фигура: S = ${sOrig.toFixed(0)} ед²`, '#fda4af', -18);
+        drawSegmentLabel(pMidAB, pC_proj, `Проекция (тень): Sпр = S·cos φ = ${sProj.toFixed(1)} ед²`, '#6ee7b7', 18);
+
+        drawPointMarker(pC_fig, '#fbbf24', 'Вершина C наклонной фигуры', -14);
+        drawPointMarker(pC_proj, '#34d399', "C' (проекция C на плоскость α)", 14);
+
+        updateMetrics({
+          'Площадь фигуры S': `${sOrig.toFixed(1)} ед²`,
+          'Угол наклона φ и cos φ': `${da.inclineDeg}° (cos φ = ${cosPhi.toFixed(3)})`,
+          'Площадь проекции S·cos φ': `${sProj.toFixed(1)} ед² ✨`,
+          'Обратная формула (сечение)': 'S_сечения = S_проекции / cos φ'
+        }, '5.4 Площадь Ортогональной Проекции');
+      }
+    }
+
+    function renderVolumesSurfaces3D() {
+      const vs = state.volSurf3d;
+      const w = canvas.width, h = canvas.height;
+      // Scale math units (1..5) to 3D viewport coordinates (-1.4..+1.4)
+      const scale3 = 0.34;
+      const a = vs.paramR;
+      const H = vs.shape === 'sphere' ? 2 * a : vs.paramH;
+      const fill = vs.fillLevel;
+
+      const r3 = a * scale3;
+      const h3 = H * scale3;
+      const yBot = -h3 / 2;
+      const yTop = h3 / 2;
+      const yWater = yBot + h3 * fill;
+
+      const draw3DFace = (pts3, fillColor, alpha, strokeColor = 'rgba(255,255,255,0.45)', lw = 1.5) => {
+        const proj = pts3.map(p => project3D(p, w, h));
+        ctx.beginPath();
+        proj.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        if (state.uiLayers.showFaces3D && alpha > 0) {
+          ctx.fillStyle = fillColor;
+          ctx.globalAlpha = alpha;
+          ctx.fill();
+          ctx.globalAlpha = 1.0;
+        }
+        if (state.uiLayers.showEdges3D) {
+          ctx.strokeStyle = strokeColor;
+          ctx.lineWidth = lw;
+          ctx.stroke();
+        }
+      };
+
+      const baseAlpha = vs.highlightPart === 'lateral' ? 0.08 : (vs.highlightPart === 'base' ? 0.65 : 0.35);
+      const latAlpha = vs.highlightPart === 'base' ? 0.08 : (vs.highlightPart === 'lateral' ? 0.55 : 0.28);
+
+      let sBase = 0, sLat = 0, sTotal = 0, vol = 0, extraInfo = '';
+
+      if (vs.shape === 'box' || vs.shape === 'prism') {
+        const nSides = vs.shape === 'box' ? 4 : 6;
+        const startAng = vs.shape === 'box' ? Math.PI / 4 : 0;
+        const radPoly = vs.shape === 'box' ? r3 * 0.85 : r3;
+
+        const botRing = [], topRing = [], waterRing = [];
+        for (let i = 0; i < nSides; i++) {
+          const th = startAng + (2 * Math.PI * i) / nSides;
+          const x = radPoly * Math.cos(th), z = radPoly * Math.sin(th);
+          botRing.push({ x, y: yBot, z });
+          topRing.push({ x, y: yTop, z });
+          waterRing.push({ x, y: yWater, z });
+        }
+
+        // Draw Water Volume inside up to yWater
+        if (fill > 0.01 && state.uiLayers.showFaces3D) {
+          for (let i = 0; i < nSides; i++) {
+            const nx = (i + 1) % nSides;
+            draw3DFace([botRing[i], botRing[nx], waterRing[nx], waterRing[i]], '#06b6d4', 0.38, 'rgba(34,211,238,0.5)', 1);
+          }
+          draw3DFace(waterRing, '#22d3ee', 0.48, '#22d3ee', 2);
+        }
+
+        // Draw Base & Top (S_осн) in Emerald
+        draw3DFace(botRing, '#34d399', baseAlpha, '#34d399', 2.2);
+        draw3DFace(topRing, '#34d399', baseAlpha, '#34d399', 2.2);
+
+        // Draw Lateral Faces (S_бок) in Blue
+        for (let i = 0; i < nSides; i++) {
+          const nx = (i + 1) % nSides;
+          draw3DFace([botRing[i], botRing[nx], topRing[nx], topRing[i]], '#38bdf8', latAlpha, 'rgba(255,255,255,0.45)', 1.6);
+        }
+
+        // Dimension labels
+        const pB0 = project3D(botRing[0], w, h);
+        const pB1 = project3D(botRing[1], w, h);
+        const pT1 = project3D(topRing[1], w, h);
+        drawSegmentLabel(pB0, pB1, `Сторона a = ${a.toFixed(1)}`, '#6ee7b7', 16);
+        drawSegmentLabel(pB1, pT1, `Высота H = ${H.toFixed(1)}`, '#7dd3fc', 18);
+
+        if (vs.shape === 'box') {
+          sBase = a * a;
+          sLat = 4 * a * H;
+          sTotal = 2 * sBase + sLat;
+          vol = sBase * H;
+          extraInfo = `Две крышки 2·Sосн = ${(2*sBase).toFixed(1)}`;
+        } else {
+          sBase = (3 * Math.sqrt(3) / 2) * a * a;
+          sLat = 6 * a * H;
+          sTotal = 2 * sBase + sLat;
+          vol = sBase * H;
+          extraInfo = `Периметр P = ${(6*a).toFixed(1)}`;
+        }
+      } else if (vs.shape === 'pyramid') {
+        const halfA = r3 * 0.72;
+        const botRing = [
+          { x: -halfA, y: yBot, z: -halfA },
+          { x: halfA, y: yBot, z: -halfA },
+          { x: halfA, y: yBot, z: halfA },
+          { x: -halfA, y: yBot, z: halfA }
+        ];
+        const apex = { x: 0, y: yTop, z: 0 };
+        const centerBot = { x: 0, y: yBot, z: 0 };
+        const midSide = { x: halfA, y: yBot, z: 0 };
+
+        // Optional Bounding Prism to visually prove V_pyramid = 1/3 V_prism!
+        if (vs.showBoundingCylinder) {
+          const topRing = botRing.map(p => ({ x: p.x, y: yTop, z: p.z }));
+          for (let i = 0; i < 4; i++) {
+            const nx = (i + 1) % 4;
+            drawLine(project3D(botRing[i], w, h), project3D(topRing[i], w, h), 'rgba(251, 191, 36, 0.35)', 1.5, true);
+            drawLine(project3D(topRing[i], w, h), project3D(topRing[nx], w, h), 'rgba(251, 191, 36, 0.35)', 1.5, true);
+          }
+        }
+
+        // Water fill inside pyramid
+        if (fill > 0.01 && state.uiLayers.showFaces3D) {
+          const kW = 1 - fill;
+          const wRing = botRing.map(p => ({
+            x: p.x * kW,
+            y: yWater,
+            z: p.z * kW
+          }));
+          for (let i = 0; i < 4; i++) {
+            const nx = (i + 1) % 4;
+            draw3DFace([botRing[i], botRing[nx], wRing[nx], wRing[i]], '#06b6d4', 0.38, 'rgba(34,211,238,0.4)', 1);
+          }
+          draw3DFace(wRing, '#22d3ee', 0.5, '#22d3ee', 2);
+        }
+
+        // Base square (S_осн)
+        draw3DFace(botRing, '#34d399', baseAlpha, '#34d399', 2.4);
+
+        // 4 Lateral triangular faces (S_бок)
+        for (let i = 0; i < 4; i++) {
+          const nx = (i + 1) % 4;
+          draw3DFace([botRing[i], botRing[nx], apex], '#38bdf8', latAlpha, 'rgba(255,255,255,0.5)', 1.8);
+        }
+
+        // Highlight Inner Height H (red) and Slant Apothem l (amber) forming right triangle!
+        const pApex = project3D(apex, w, h);
+        const pCenter = project3D(centerBot, w, h);
+        const pMid = project3D(midSide, w, h);
+
+        drawLine(pApex, pCenter, '#f43f5e', 3.2);
+        drawLine(pCenter, pMid, '#34d399', 2.5, true);
+        drawLine(pApex, pMid, '#fbbf24', 3.5);
+        drawRightAngleSquare(pCenter, pApex, pMid, 12, '#f43f5e');
+
+        const apothem = Math.hypot(H, a / 2);
+        drawSegmentLabel(pApex, pCenter, `Высота H = ${H.toFixed(1)}`, '#fda4af', -18);
+        drawSegmentLabel(pApex, pMid, `Апофема l = ${apothem.toFixed(2)}`, '#fde68a', 18);
+        drawSegmentLabel(project3D(botRing[1], w, h), project3D(botRing[2], w, h), `Сторона a = ${a.toFixed(1)}`, '#6ee7b7', 16);
+
+        sBase = a * a;
+        sLat = 2 * a * apothem;
+        sTotal = sBase + sLat;
+        vol = (1 / 3) * sBase * H;
+        extraInfo = `Апофема l = ${apothem.toFixed(2)}`;
+      } else if (vs.shape === 'cylinder' || vs.shape === 'cone') {
+        const nSeg = 24;
+        const botRing = [], topRing = [], waterRing = [];
+        for (let i = 0; i < nSeg; i++) {
+          const th = (2 * Math.PI * i) / nSeg;
+          const x = r3 * Math.cos(th), z = r3 * Math.sin(th);
+          botRing.push({ x, y: yBot, z });
+          if (vs.shape === 'cylinder') {
+            topRing.push({ x, y: yTop, z });
+            waterRing.push({ x, y: yWater, z });
+          } else {
+            topRing.push({ x: 0, y: yTop, z: 0 });
+            const kW = 1 - fill;
+            waterRing.push({ x: x * kW, y: yWater, z: z * kW });
+          }
+        }
+
+        // Optional Bounding Cylinder for Cone
+        if (vs.shape === 'cone' && vs.showBoundingCylinder) {
+          const cylTop = botRing.map(p => ({ x: p.x, y: yTop, z: p.z }));
+          for (let i = 0; i < nSeg; i += 2) {
+            const nx = (i + 2) % nSeg;
+            drawLine(project3D(cylTop[i], w, h), project3D(cylTop[nx], w, h), 'rgba(251, 191, 36, 0.35)', 1.5, true);
+          }
+          drawLine(project3D(botRing[0], w, h), project3D(cylTop[0], w, h), 'rgba(251, 191, 36, 0.4)', 1.5, true);
+          drawLine(project3D(botRing[12], w, h), project3D(cylTop[12], w, h), 'rgba(251, 191, 36, 0.4)', 1.5, true);
+        }
+
+        // Water Fill
+        if (fill > 0.01 && state.uiLayers.showFaces3D) {
+          draw3DFace(waterRing, '#22d3ee', 0.45, '#22d3ee', 2);
+        }
+
+        // Base Circle(s)
+        draw3DFace(botRing, '#34d399', baseAlpha, '#34d399', 2.2);
+        if (vs.shape === 'cylinder') {
+          draw3DFace(topRing, '#34d399', baseAlpha, '#34d399', 2.2);
+        }
+
+        // Lateral strips
+        for (let i = 0; i < nSeg; i++) {
+          const nx = (i + 1) % nSeg;
+          draw3DFace([botRing[i], botRing[nx], topRing[nx], topRing[i]], '#38bdf8', latAlpha * 0.75, 'rgba(255,255,255,0.18)', 1);
+        }
+
+        const pCenterBot = project3D({ x: 0, y: yBot, z: 0 }, w, h);
+        const pCenterTop = project3D({ x: 0, y: yTop, z: 0 }, w, h);
+        const pEdgeBot = project3D(botRing[0], w, h);
+        const pEdgeTop = project3D(topRing[0], w, h);
+
+        drawLine(pCenterBot, pEdgeBot, '#34d399', 3);
+        drawLine(pCenterBot, pCenterTop, '#f43f5e', 3);
+        drawLine(pEdgeBot, pEdgeTop, '#fbbf24', 3.5);
+        drawRightAngleSquare(pCenterBot, pCenterTop, pEdgeBot, 12, '#f43f5e');
+
+        drawSegmentLabel(pCenterBot, pEdgeBot, `R = ${a.toFixed(1)}`, '#6ee7b7', 15);
+        drawSegmentLabel(pCenterBot, pCenterTop, `H = ${H.toFixed(1)}`, '#fda4af', -18);
+
+        if (vs.shape === 'cylinder') {
+          sBase = Math.PI * a * a;
+          sLat = 2 * Math.PI * a * H;
+          sTotal = 2 * sBase + sLat;
+          vol = sBase * H;
+          extraInfo = `Две крышки 2πR² = ${(2*sBase).toFixed(1)}`;
+        } else {
+          const slantL = Math.hypot(a, H);
+          drawSegmentLabel(pEdgeBot, pEdgeTop, `Образующая l = ${slantL.toFixed(2)}`, '#fde68a', 18);
+          sBase = Math.PI * a * a;
+          sLat = Math.PI * a * slantL;
+          sTotal = sBase + sLat;
+          vol = (1 / 3) * sBase * H;
+          extraInfo = `Образующая l = ${slantL.toFixed(2)}`;
+        }
+      } else {
+        // SPHERE + Archimedes Bounding Cylinder (H = 2R)
+        const radS = r3 * 0.95;
+        if (vs.showBoundingCylinder) {
+          const nSeg = 24;
+          const bRing = [], tRing = [];
+          for (let i = 0; i < nSeg; i++) {
+            const th = (2 * Math.PI * i) / nSeg;
+            bRing.push({ x: radS * Math.cos(th), y: -radS, z: radS * Math.sin(th) });
+            tRing.push({ x: radS * Math.cos(th), y: radS, z: radS * Math.sin(th) });
+          }
+          draw3DFace(bRing, '#fbbf24', 0.1, 'rgba(251, 191, 36, 0.45)', 1.5);
+          draw3DFace(tRing, '#fbbf24', 0.1, 'rgba(251, 191, 36, 0.45)', 1.5);
+          drawLine(project3D(bRing[0], w, h), project3D(tRing[0], w, h), 'rgba(251, 191, 36, 0.45)', 1.5, true);
+          drawLine(project3D(bRing[12], w, h), project3D(tRing[12], w, h), 'rgba(251, 191, 36, 0.45)', 1.5, true);
+        }
+
+        // Draw Sphere latitudes & longitudes
+        const rings = 10, sectors = 16;
+        for (let i = 0; i < rings; i++) {
+          const phi1 = (Math.PI * i) / rings;
+          const phi2 = (Math.PI * (i + 1)) / rings;
+          for (let j = 0; j < sectors; j++) {
+            const th1 = (2 * Math.PI * j) / sectors;
+            const th2 = (2 * Math.PI * (j + 1)) / sectors;
+            const quad = [
+              { x: radS * Math.sin(phi1) * Math.cos(th1), y: radS * Math.cos(phi1), z: radS * Math.sin(phi1) * Math.sin(th1) },
+              { x: radS * Math.sin(phi1) * Math.cos(th2), y: radS * Math.cos(phi1), z: radS * Math.sin(phi1) * Math.sin(th2) },
+              { x: radS * Math.sin(phi2) * Math.cos(th2), y: radS * Math.cos(phi2), z: radS * Math.sin(phi2) * Math.sin(th2) },
+              { x: radS * Math.sin(phi2) * Math.cos(th1), y: radS * Math.cos(phi2), z: radS * Math.sin(phi2) * Math.sin(th1) }
+            ];
+            const isFilled = (1 - i / rings) <= fill;
+            draw3DFace(quad, isFilled ? '#06b6d4' : '#38bdf8', isFilled ? 0.42 : 0.18, 'rgba(255,255,255,0.22)', 1);
+          }
+        }
+
+        const pO = project3D({ x: 0, y: 0, z: 0 }, w, h);
+        const pR = project3D({ x: radS, y: 0, z: 0 }, w, h);
+        drawLine(pO, pR, '#f43f5e', 3.5);
+        drawSegmentLabel(pO, pR, `Радиус R = ${a.toFixed(1)}`, '#fda4af', -15);
+        drawPointMarker(pO, '#fff', 'Центр O', 14);
+
+        sBase = Math.PI * a * a; // Great circle area pi*R^2
+        sLat = 4 * Math.PI * a * a;
+        sTotal = sLat;
+        vol = (4 / 3) * Math.PI * a * a * a;
+        extraInfo = `Ровно 4 круга: 4·πR²`;
+      }
+
+      updateMetrics({
+        'Площадь основания Sосн': `${sBase.toFixed(2)} ед²`,
+        'Боковая поверхность Sбок': `${sLat.toFixed(2)} ед² (${extraInfo})`,
+        'Полная поверхность Sполн': `${sTotal.toFixed(2)} ед²`,
+        'Объём фигуры V': `${vol.toFixed(2)} ед³ ✨`
+      }, 'Объём и Поверхность 3D');
     }
 
     function renderPlatonicSolids3D() {
@@ -5264,10 +7674,38 @@
 
     function handlePointerDown(pos, hitRadius = 32) {
       if (state.domain === 'quests') {
-        if (state.questId === 'quest_orthocenter') {
+        if (state.questId === 'quest_orthocenter' || state.questId === 'quest_euler_collapse') {
           for (let pt of [state.triangle.A, state.triangle.B, state.triangle.C]) {
             if (dist(pos, pt) < hitRadius) { state.draggedPoint = pt; return true; }
           }
+        } else if (state.questId === 'quest_heron_bridge') {
+          const cx = canvas.width / 2 - 20, yRiver = canvas.height / 2 + 55;
+          const M = { x: cx + state.questsExtra.heronM_x, y: yRiver };
+          if (dist(pos, M) < hitRadius + 10 || Math.abs(pos.y - yRiver) < 35) {
+            state.draggedPoint = { type: 'heron_M', cx };
+            state.questsExtra.heronM_x = Math.max(-220, Math.min(220, pos.x - cx));
+            return true;
+          }
+        } else if (state.questId === 'quest_inscribed_quad') {
+          if (dist(pos, state.questsExtra.quadD) < hitRadius + 6) {
+            state.draggedPoint = state.questsExtra.quadD;
+            return true;
+          }
+        } else if (state.questId === 'quest_perp_vectors') {
+          const unit = 30;
+          const ox = Math.round((canvas.width / 2 - 20) / unit) * unit;
+          const oy = Math.round((canvas.height / 2 + 15) / unit) * unit;
+          const O = { x: ox, y: oy };
+          const tipA = { x: O.x + state.vectors2d.vecA.x, y: O.y + state.vectors2d.vecA.y };
+          const tipB = { x: O.x + state.vectors2d.vecB.x, y: O.y + state.vectors2d.vecB.y };
+          if (dist(pos, tipB) < hitRadius) { state.draggedPoint = { type: 'vec_tip', target: state.vectors2d.vecB, origin: O }; return true; }
+          if (dist(pos, tipA) < hitRadius) { state.draggedPoint = { type: 'vec_tip', target: state.vectors2d.vecA, origin: O }; return true; }
+        } else if (state.questId === 'quest_spider_cube' || state.questId === 'quest_shadow_3d' || state.questId === 'quest_dimensions') {
+          state.camera.drag = true;
+          state.camera.lastMouseX = pos.x;
+          state.camera.lastMouseY = pos.y;
+          state.camera.autoRotate = false;
+          return true;
         } else if (state.questId === 'quest_thales') {
           const { radius, angleA, angleB, angleP } = state.circleChord;
           const O = { x: canvas.width / 2 - 20, y: canvas.height / 2 + 10 };
@@ -5289,6 +7727,43 @@
           return true;
         }
       } else if (state.domain === '2d') {
+        if (state.mode2d === 'vectors_2d') {
+          const v2 = state.vectors2d;
+          const unit = 30;
+          const ox = Math.round((canvas.width / 2 - 20) / unit) * unit;
+          const oy = Math.round((canvas.height / 2 + 15) / unit) * unit;
+
+          if (v2.subMode === 'basics') {
+            const A = { x: ox + v2.baseA.x, y: oy + v2.baseA.y };
+            const B = { x: A.x + v2.vecA.x, y: A.y + v2.vecA.y };
+            if (dist(pos, B) < hitRadius) { state.draggedPoint = { type: 'vec_basics_B', ox, oy }; return true; }
+            if (dist(pos, A) < hitRadius) { state.draggedPoint = { type: 'vec_basics_A', ox, oy }; return true; }
+          } else if (v2.subMode === 'addition') {
+            const O = { x: ox - 70, y: oy + 40 };
+            const tipA = { x: O.x + v2.vecA.x, y: O.y + v2.vecA.y };
+            const tipB = { x: O.x + v2.vecB.x, y: O.y + v2.vecB.y };
+            if (dist(pos, tipA) < hitRadius) { state.draggedPoint = { type: 'vec_tip', target: v2.vecA, origin: O }; return true; }
+            if (dist(pos, tipB) < hitRadius) { state.draggedPoint = { type: 'vec_tip', target: v2.vecB, origin: O }; return true; }
+          } else if (v2.subMode === 'sub_scalar') {
+            const O1 = { x: ox - 160, y: oy + 30 };
+            const tipA = { x: O1.x + v2.vecA.x, y: O1.y + v2.vecA.y };
+            const tipB = { x: O1.x + v2.vecB.x, y: O1.y + v2.vecB.y };
+            if (dist(pos, tipA) < hitRadius) { state.draggedPoint = { type: 'vec_tip', target: v2.vecA, origin: O1 }; return true; }
+            if (dist(pos, tipB) < hitRadius) { state.draggedPoint = { type: 'vec_tip', target: v2.vecB, origin: O1 }; return true; }
+          } else if (v2.subMode === 'dot_product') {
+            const O = { x: ox, y: oy };
+            const tipA = { x: O.x + v2.vecA.x, y: O.y + v2.vecA.y };
+            const tipB = { x: O.x + v2.vecB.x, y: O.y + v2.vecB.y };
+            if (dist(pos, tipA) < hitRadius) { state.draggedPoint = { type: 'vec_tip', target: v2.vecA, origin: O }; return true; }
+            if (dist(pos, tipB) < hitRadius) { state.draggedPoint = { type: 'vec_tip', target: v2.vecB, origin: O }; return true; }
+          } else if (v2.subMode === 'geom_apps') {
+            const O = { x: ox - 140, y: oy + 110 };
+            const A = { x: O.x + v2.vecA.x * 1.4, y: O.y + v2.vecA.y * 1.4 };
+            const B = { x: O.x + v2.vecB.x * 1.6 + 110, y: O.y + v2.vecB.y * 0.4 - 20 };
+            if (dist(pos, A) < hitRadius) { state.draggedPoint = { type: 'vec_geom_A', origin: O }; return true; }
+            if (dist(pos, B) < hitRadius) { state.draggedPoint = { type: 'vec_geom_B', origin: O }; return true; }
+          }
+        }
         if (state.mode2d === 'triangles_lines' || state.mode2d === 'sine_cosine_laws') {
           for (let pt of [state.triangle.A, state.triangle.B, state.triangle.C]) {
             if (dist(pos, pt) < hitRadius) { state.draggedPoint = pt; return true; }
@@ -5321,7 +7796,25 @@
 
     function handlePointerMove(pos) {
       if (state.draggedPoint) {
-        if (state.draggedPoint.type === 'dido_scrub') {
+        if (state.draggedPoint.type === 'heron_M') {
+          state.questsExtra.heronM_x = Math.max(-220, Math.min(220, Math.round(pos.x - state.draggedPoint.cx)));
+        } else if (state.draggedPoint.type === 'vec_basics_A') {
+          state.vectors2d.baseA.x = pos.x - state.draggedPoint.ox;
+          state.vectors2d.baseA.y = pos.y - state.draggedPoint.oy;
+        } else if (state.draggedPoint.type === 'vec_basics_B') {
+          const A = { x: state.draggedPoint.ox + state.vectors2d.baseA.x, y: state.draggedPoint.oy + state.vectors2d.baseA.y };
+          state.vectors2d.vecA.x = Math.round((pos.x - A.x) / 15) * 15;
+          state.vectors2d.vecA.y = Math.round((pos.y - A.y) / 15) * 15;
+        } else if (state.draggedPoint.type === 'vec_tip') {
+          state.draggedPoint.target.x = Math.round((pos.x - state.draggedPoint.origin.x) / 15) * 15;
+          state.draggedPoint.target.y = Math.round((pos.y - state.draggedPoint.origin.y) / 15) * 15;
+        } else if (state.draggedPoint.type === 'vec_geom_A') {
+          state.vectors2d.vecA.x = (pos.x - state.draggedPoint.origin.x) / 1.4;
+          state.vectors2d.vecA.y = (pos.y - state.draggedPoint.origin.y) / 1.4;
+        } else if (state.draggedPoint.type === 'vec_geom_B') {
+          state.vectors2d.vecB.x = (pos.x - state.draggedPoint.origin.x - 110) / 1.6;
+          state.vectors2d.vecB.y = (pos.y - state.draggedPoint.origin.y + 20) / 0.4;
+        } else if (state.draggedPoint.type === 'dido_scrub') {
           const delta = (pos.x - state.draggedPoint.startX) / (canvas.width * 0.45);
           state.dido.morphProgress = Math.max(0, Math.min(1, state.draggedPoint.startVal + delta));
           const slider = document.getElementById('dido-slider');
@@ -5740,6 +8233,226 @@
       }, 'Задача Царицы Дидоны');
     }
 
+    function renderQuestEulerCollapseScene() {
+      state.triFeatures.altitudes = true;
+      state.triFeatures.medians = true;
+      state.triFeatures.perpBisectors = true;
+      state.triFeatures.bisectors = true;
+      state.triFeatures.eulerLine = true;
+      renderTrianglesLinesScene();
+
+      const { A, B, C } = state.triangle;
+      const O = getCircumcenter(A, B, C);
+      const H = getOrthocenter(A, B, C);
+      const dHO = dist(H, O);
+      const el = document.getElementById('quest-euler-status');
+      if (el) {
+        const ok = dHO < 12;
+        el.innerText = ok
+          ? '🎉 ПОБЕДА! Треугольник стал равносторонним (60°-60°-60°), и все 4 центра H, M, O, I слились в одну точку!'
+          : `Сейчас расстояние HO = ${Math.round(dHO)} px. Сделай стороны равными (HO < 12 px)!`;
+        el.className = 'quest-status' + (ok ? ' success' : '');
+      }
+    }
+
+    function renderQuestHeronBridgeScene() {
+      const qe = state.questsExtra;
+      const cx = canvas.width / 2 - 20;
+      const yRiver = canvas.height / 2 + 55;
+
+      // Draw River
+      ctx.fillStyle = 'rgba(14, 165, 233, 0.22)';
+      ctx.fillRect(30, yRiver, canvas.width - 60, 55);
+      drawLine({ x: 30, y: yRiver }, { x: canvas.width - 30, y: yRiver }, '#38bdf8', 4);
+      if (state.uiLayers.showLabels) {
+        ctx.fillStyle = '#7dd3fc';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🌊 Прямой берег реки (потяни точку моста M вдоль берега!)', cx, yRiver + 32);
+      }
+
+      const A = { x: cx - 180, y: yRiver - 120 };
+      const B = { x: cx + 190, y: yRiver - 185 };
+      const A_mirror = { x: A.x, y: yRiver + 120 }; // Reflected across yRiver
+      const M = { x: cx + qe.heronM_x, y: yRiver };
+
+      // Optimal M is intersection of A_mirror -> B with y = yRiver:
+      // t = 120 / (120 + 185) = 120 / 305 => x_opt = A.x + (B.x - A.x) * (120/305) = cx - 180 + 370 * (120/305) ≈ cx - 34.4
+      const optX = -180 + 370 * (120 / 305);
+
+      if (qe.showHeronMirror) {
+        drawLine(A, A_mirror, 'rgba(251, 191, 36, 0.5)', 2, true);
+        drawLine(A_mirror, B, 'rgba(52, 211, 153, 0.55)', 3, true);
+        drawLine(A_mirror, M, '#c084fc', 2.5, true);
+        drawPointMarker(A_mirror, '#fbbf24', "A' (зеркальное отражение A)", 16);
+        drawSegmentLabel(A_mirror, B, 'Прямая A′B — кратчайший путь!', '#6ee7b7', 16);
+      }
+
+      const dAM = dist(A, M), dMB = dist(B, M);
+      const totalLen = dAM + dMB;
+      const minLen = dist(A_mirror, B);
+      const isOpt = Math.abs(qe.heronM_x - optX) < 8;
+
+      drawLine(A, M, isOpt ? '#34d399' : '#f43f5e', 4);
+      drawLine(M, B, isOpt ? '#34d399' : '#f43f5e', 4);
+
+      // Grazing angles with river bank
+      const ang1 = Math.atan2(yRiver - A.y, M.x - A.x) * 180 / Math.PI;
+      const ang2 = Math.atan2(yRiver - B.y, B.x - M.x) * 180 / Math.PI;
+      drawAngleArc(M, { x: M.x - 60, y: yRiver }, A, 36, '#fbbf24', `∠1=${ang1.toFixed(0)}°`);
+      drawAngleArc(M, B, { x: M.x + 60, y: yRiver }, 36, '#38bdf8', `∠2=${ang2.toFixed(0)}°`);
+
+      drawSegmentLabel(A, M, `AM = ${dAM.toFixed(0)}`, '#fda4af', -16);
+      drawSegmentLabel(M, B, `MB = ${dMB.toFixed(0)}`, '#fda4af', -16);
+
+      drawPointMarker(A, '#f43f5e', 'Город A', -14);
+      drawPointMarker(B, '#38bdf8', 'Город B', -14);
+      drawDraggableHandle({ x: M.x, y: M.y, label: 'Мост M (тяни!)', color: isOpt ? '#34d399' : '#fbbf24' });
+
+      const el = document.getElementById('quest-heron-status');
+      if (el) {
+        el.innerText = `Путь AM + MB = ${totalLen.toFixed(1)} м (мин = ${minLen.toFixed(1)} м) ` + (isOpt ? '🎉 ПОБЕДА! Угол падения равен углу отражения (∠1 = ∠2), путь минимален!' : 'Двигай мост M, чтобы уравнять углы ∠1 и ∠2!');
+        el.className = 'quest-status' + (isOpt ? ' success' : '');
+      }
+
+      updateMetrics({
+        'Угол подхода ∠1': `${ang1.toFixed(1)}°`,
+        'Угол отхода ∠2': `${ang2.toFixed(1)}°`,
+        'Текущий путь AM+MB': `${totalLen.toFixed(1)} м`,
+        'Минимум по прямой A′B': `${minLen.toFixed(1)} м ✨`
+      }, 'Квест 6: Мост Герона');
+    }
+
+    function renderQuestInscribedQuadScene() {
+      const O = { x: canvas.width / 2 - 20, y: canvas.height / 2 + 10 };
+      const R = 155;
+
+      // Fixed circle through A, B, C
+      ctx.beginPath();
+      ctx.arc(O.x, O.y, R, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([7, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const A = { x: O.x + R * Math.cos(2.35), y: O.y + R * Math.sin(2.35) };
+      const B = { x: O.x + R * Math.cos(3.85), y: O.y + R * Math.sin(3.85) };
+      const C = { x: O.x + R * Math.cos(5.35), y: O.y + R * Math.sin(5.35) };
+      const D = state.questsExtra.quadD;
+
+      const angB = getTriangleAngles(B, A, C).angA;
+      const angD = getTriangleAngles(D, A, C).angA;
+      const sumBD = angB + angD;
+      const isInscribed = Math.abs(sumBD - 180) < 2.2 && Math.abs(dist(O, D) - R) < 12;
+
+      ctx.beginPath();
+      ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.lineTo(D.x, D.y);
+      ctx.closePath();
+      ctx.fillStyle = isInscribed ? 'rgba(52, 211, 153, 0.22)' : 'rgba(244, 63, 94, 0.14)';
+      ctx.fill();
+      ctx.strokeStyle = isInscribed ? '#34d399' : '#fff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      drawAngleArc(B, C, A, 34, '#38bdf8', `∠B=${angB.toFixed(0)}°`);
+      drawAngleArc(D, A, C, 34, '#fbbf24', `∠D=${angD.toFixed(0)}°`);
+
+      drawPointMarker(O, '#fff', 'Центр O', 14);
+      drawPointMarker(A, '#38bdf8', 'A', 14);
+      drawPointMarker(B, '#38bdf8', 'B', -14);
+      drawPointMarker(C, '#38bdf8', 'C', -14);
+      drawDraggableHandle(D);
+
+      const el = document.getElementById('quest-quad-status');
+      if (el) {
+        el.innerText = `∠B + ∠D = ${angB.toFixed(1)}° + ${angD.toFixed(1)}° = ${sumBD.toFixed(1)}° ` + (isInscribed ? '🎉 ПОБЕДА! Сумма противоположных углов = 180°, четырёхугольник вписан в окружность!' : 'Подведи точку D к окружности (сумма должна стать 180°)!');
+        el.className = 'quest-status' + (isInscribed ? ' success' : '');
+      }
+
+      updateMetrics({
+        'Угол ∠B': `${angB.toFixed(1)}°`,
+        'Угол ∠D': `${angD.toFixed(1)}°`,
+        'Сумма ∠B + ∠D': `${sumBD.toFixed(1)}° (цель: 180°)`,
+        'Статус 4-угольника': isInscribed ? 'Вписан в окружность! ✨' : 'Не вписан'
+      }, 'Квест 7: Вписанный 4-угольник');
+    }
+
+    function renderQuestSpiderCubeScene() {
+      const qe = state.questsExtra;
+      const w = canvas.width, h = canvas.height;
+      const s = 0.9;
+      const fold = (1 - qe.antUnfold) * (Math.PI / 2); // pi/2 = 3D cube, 0 = top face unfolded flat with front face!
+
+      // Front face of cube: z = +s, x in [-s, s], y in [-s, s]
+      const A3 = { x: -s, y: -s, z: s }; // Start point A (bottom-left-front)
+      const B3 = { x: s, y: -s, z: s };
+      const B1_3 = { x: s, y: s, z: s };
+      const A1_3 = { x: -s, y: s, z: s };
+
+      // Top face hinges along top-front edge A1-B1 (y = s, z = s) by angle fold:
+      // When fold = pi/2 (3D cube), top face goes back along z from +s to -s at y = +s.
+      // When fold = 0 (unfolded flat), top face goes UP along y from +s to +3s at z = +s!
+      const D1_3 = { x: -s, y: s + 2 * s * Math.cos(fold), z: s - 2 * s * Math.sin(fold) };
+      const C1_3 = { x: s, y: s + 2 * s * Math.cos(fold), z: s - 2 * s * Math.sin(fold) }; // Target point C1!
+
+      // Draw rest of cube wireframe lightly
+      const backBotL = project3D({ x: -s, y: -s, z: -s }, w, h);
+      const backBotR = project3D({ x: s, y: -s, z: -s }, w, h);
+      const backTopL = project3D({ x: -s, y: s, z: -s }, w, h);
+      const backTopR = project3D({ x: s, y: s, z: -s }, w, h);
+      const pA = project3D(A3, w, h), pB = project3D(B3, w, h), pB1 = project3D(B1_3, w, h), pA1 = project3D(A1_3, w, h);
+      const pD1 = project3D(D1_3, w, h), pC1 = project3D(C1_3, w, h);
+
+      drawLine(backBotL, backBotR, 'rgba(255,255,255,0.2)', 1.5, true);
+      drawLine(backBotR, backTopR, 'rgba(255,255,255,0.2)', 1.5, true);
+      drawLine(backBotL, backTopL, 'rgba(255,255,255,0.2)', 1.5, true);
+      drawLine(backTopL, backTopR, 'rgba(255,255,255,0.2)', 1.5, true);
+      drawLine(pA, backBotL, 'rgba(255,255,255,0.2)', 1.5, true);
+      drawLine(pB, backBotR, 'rgba(255,255,255,0.2)', 1.5, true);
+
+      // Draw Front Face and Hinged Top Face
+      drawPlanePatch3D([A3, B3, B1_3, A1_3], '#38bdf8', 0.28, '#38bdf8', w, h);
+      drawPlanePatch3D([A1_3, B1_3, C1_3, D1_3], '#818cf8', 0.28, '#818cf8', w, h);
+
+      // Crossing point K on edge A1-B1 at fraction t = qe.antEdgeT
+      const t = qe.antEdgeT;
+      const K3 = { x: -s + 2 * s * t, y: s, z: s };
+      const pK = project3D(K3, w, h);
+
+      // True math distances (for cube of side a = 10):
+      // Front segment AK: dx = 10*t, dy = 10 => d1 = 10 * sqrt(t^2 + 1)
+      // Top segment KC1: dx = 10*(1-t), dz = 10 => d2 = 10 * sqrt((1-t)^2 + 1)
+      const d1 = 10 * Math.hypot(t, 1);
+      const d2 = 10 * Math.hypot(1 - t, 1);
+      const totalPath = d1 + d2;
+      const minPath = 10 * Math.sqrt(5); // ~22.36 at t = 0.5
+      const isOpt = Math.abs(t - 0.5) < 0.035;
+
+      drawLine(pA, pK, isOpt ? '#34d399' : '#f43f5e', 4.5);
+      drawLine(pK, pC1, isOpt ? '#34d399' : '#f43f5e', 4.5);
+
+      drawSegmentLabel(pA, pK, `AK = ${d1.toFixed(2)}`, '#fda4af', -16);
+      drawSegmentLabel(pK, pC1, `KC₁ = ${d2.toFixed(2)}`, '#fda4af', 16);
+
+      drawPointMarker(pA, '#fbbf24', 'Старт муравья A', 14);
+      drawPointMarker(pK, isOpt ? '#34d399' : '#f43f5e', `Точка переползания K (t=${t.toFixed(2)})`, -14);
+      drawPointMarker(pC1, '#34d399', 'Финиш C₁', -14);
+
+      const el = document.getElementById('quest-ant-status');
+      if (el) {
+        el.innerText = `Путь = ${totalPath.toFixed(2)} (мин = 10√5 ≈ ${minPath.toFixed(2)}) ` + (isOpt ? '🎉 ПОБЕДА! Ровно через середину ребра (t = 0.5) путь превращается в прямую на развёртке!' : 'Ищи точку K на ребре для кратчайшего пути!');
+        el.className = 'quest-status' + (isOpt ? ' success' : '');
+      }
+
+      updateMetrics({
+        'Сторона куба a': '10.0',
+        'Путь по рёбрам (3a)': '30.00 (слишком длинно)',
+        'Текущий маршрут AK+KC₁': `${totalPath.toFixed(2)}`,
+        'Минимум a√5 (при t=0.5)': `${minPath.toFixed(2)} ✨`
+      }, 'Квест 9: Муравей на Кубе');
+    }
+
     function mainLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (state.domain === '2d') {
@@ -5767,8 +8480,43 @@
           }
         } else if (state.questId === 'quest_cube_hex') {
           renderSectionPlane3D();
-        } else {
+        } else if (state.questId === 'quest_isoperimetric') {
           renderQuestDidoScene();
+        } else if (state.questId === 'quest_euler_collapse') {
+          renderQuestEulerCollapseScene();
+        } else if (state.questId === 'quest_heron_bridge') {
+          renderQuestHeronBridgeScene();
+        } else if (state.questId === 'quest_inscribed_quad') {
+          renderQuestInscribedQuadScene();
+        } else if (state.questId === 'quest_perp_vectors') {
+          state.vectors2d.subMode = 'dot_product';
+          renderVectors2DScene();
+          const unit = 30;
+          const ax = +(state.vectors2d.vecA.x / unit).toFixed(1), ay = +(-state.vectors2d.vecA.y / unit).toFixed(1);
+          const bx = +(state.vectors2d.vecB.x / unit).toFixed(1), by = +(-state.vectors2d.vecB.y / unit).toFixed(1);
+          const dot = ax * bx + ay * by;
+          const el = document.getElementById('quest-vec-status');
+          if (el) {
+            const ok = Math.abs(dot) < 0.15 && Math.hypot(bx, by) > 0.5;
+            el.innerText = `a · b = ${dot.toFixed(1)} ` + (ok ? '🎉 ПОБЕДА! Скалярное произведение = 0, угол ровно 90°!' : 'Сделай a · b = 0!');
+            el.className = 'quest-status' + (ok ? ' success' : '');
+          }
+        } else if (state.questId === 'quest_spider_cube') {
+          renderQuestSpiderCubeScene();
+        } else if (state.questId === 'quest_dimensions') {
+          renderDimensionsBridge3DScene();
+        } else if (state.questId === 'quest_shadow_3d') {
+          state.stereoDistAng.subMode = 'area_proj';
+          state.stereoDistAng.inclineDeg = state.questsExtra.shadowTiltDeg;
+          renderDistancesAngles3DScene();
+          const deg = state.questsExtra.shadowTiltDeg;
+          const sProj = 100 * Math.cos(deg * Math.PI / 180);
+          const el = document.getElementById('quest-shadow-status');
+          if (el) {
+            const ok = Math.abs(deg - 60) <= 1;
+            el.innerText = `Sпр = ${sProj.toFixed(1)} м² (при φ = ${deg}°) ` + (ok ? '🎉 ПОБЕДА! При φ = 60° (cos 60° = ½) тень ровно вдвое меньше!' : 'Добейся Sпр = 50.0 м²!');
+            el.className = 'quest-status' + (ok ? ' success' : '');
+          }
         }
       }
       requestAnimationFrame(mainLoop);
